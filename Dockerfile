@@ -1,4 +1,4 @@
-FROM ubuntu:22.04
+FROM ubuntu:latest
 
 COPY buildnote /usr/local/bin
 COPY buildnote.sh /usr/local/bin
