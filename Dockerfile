@@ -1,6 +1,6 @@
 FROM ubuntu:latest
 
-COPY buildnote /usr/local/bin
+COPY buildnote-linux /usr/local/bin/buildnote
 COPY buildnote.sh /usr/local/bin
 
 RUN chmod +x /usr/local/bin/buildnote
