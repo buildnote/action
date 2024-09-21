@@ -1,0 +1,14 @@
+name: 'Buildnote GitHub Action'
+description: 'Action wrapping Buildnote CLI'
+author: 'Buildnote'
+branding:
+  icon: 'code'
+  color: 'gray-dark'
+inputs:
+  example:
+    description: 'example param'
+    required: true
+runs:
+  using: 'docker'
+  image: 'Dockerfile'
+
