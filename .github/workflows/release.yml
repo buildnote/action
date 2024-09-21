@@ -18,4 +18,4 @@ jobs:
         run: |
           gh release create ${{ github.event.inputs.version }} --title "Release ${{ github.event.inputs.version }}"
         env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GITHUB_TOKEN: ${{ secrets.BUILDNOTE_ACTION_RELEASE_PAT }}
