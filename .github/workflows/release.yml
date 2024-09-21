@@ -1,0 +1,21 @@
+name: Release Buildnote Action
+concurrency: release-${{ github.event.inputs.target }}
+on:
+  workflow_dispatch:
+    inputs:
+      version:
+        description: Version
+        required: true
+        type: string
+jobs:
+  release:
+    name: Release
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4.1.7
+      - name: Create
+        run: |
+          gh release create ${{ github.event.inputs.version }} --title "Release ${{ github.event.inputs.version }}"
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
