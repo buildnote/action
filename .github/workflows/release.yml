@@ -4,7 +4,7 @@ on:
   workflow_dispatch:
     inputs:
       version:
-        description: Version
+        description: Version (e.g. 0.0.2)
         required: true
         type: string
 jobs:
@@ -16,6 +16,6 @@ jobs:
         uses: actions/checkout@v4.1.7
       - name: Create
         run: |
-          gh release create ${{ github.event.inputs.version }} --title "Release ${{ github.event.inputs.version }}"
+          gh release create "v${{ github.event.inputs.version }}" --title "Release v${{ github.event.inputs.version }}"
         env:
           GITHUB_TOKEN: ${{ secrets.BUILDNOTE_ACTION_RELEASE_PAT }}
