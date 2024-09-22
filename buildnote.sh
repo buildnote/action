@@ -1,3 +1,3 @@
 #!/bin/bash -xe
 
-buildnote
+buildnote github test-summary
