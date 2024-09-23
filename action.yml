@@ -12,7 +12,7 @@ inputs:
   exclude:
     description: 'Glob patterns of files and directories to exclude'
     required: false
-    default: "-"
+    default: ""
   display:
     description: 'Which tests to display'
     required: false
@@ -23,7 +23,7 @@ inputs:
   output:
     description: 'Path for test report output file'
     required: false
-    default: ${{ env.GITHUB_STEP_SUMMARY }}
+    default: ""
 runs:
   using: 'docker'
   image: 'Dockerfile'
