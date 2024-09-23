@@ -6,17 +6,17 @@ branding:
   color: 'gray-dark'
 inputs:
   include:
-    description: 'Glob patterns of test results to include'
+    description: 'Glob patterns of test results files to include'
     required: false
     default: "**/TEST-*.xml"
   exclude:
-    description: 'Glob patterns files or directories to exclude'
+    description: 'Glob patterns of files and directories to exclude'
     required: false
-    default: ""
+    default: " "
 runs:
   using: 'docker'
   image: 'Dockerfile'
   args:
-    - "--include=${{ inputs.include }}"
-    - "--exclude=${{ inputs.exclude }}"
+    - "--include ${{ inputs.include }}"
+    - "--exclude ${{ inputs.exclude }}"
 
