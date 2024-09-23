@@ -13,10 +13,23 @@ inputs:
     description: 'Glob patterns of files and directories to exclude'
     required: false
     default: "-"
+  display:
+    description: 'Which tests to display'
+    required: false
+    default: >
+      passed
+      failed 
+      skipped
+  output:
+    description: 'Path for test report output file'
+    required: false
+    default: ${{ env.GITHUB_STEP_SUMMARY }}
 runs:
   using: 'docker'
   image: 'Dockerfile'
   args:
     - "--include ${{ inputs.include }}"
     - "--exclude ${{ inputs.exclude }}"
+    - "--display ${{ inputs.display }}"
+    - "--output ${{ inputs.output }}"
 
