@@ -5,10 +5,18 @@ branding:
   icon: 'code'
   color: 'gray-dark'
 inputs:
-  example:
-    description: 'example param'
-    required: true
+  include:
+    description: 'Glob patterns of test results to include'
+    required: false
+    default: "**/TEST-*.xml"
+  exclude:
+    description: 'Glob patterns files or directories to exclude'
+    required: false
+    default: ""
 runs:
   using: 'docker'
   image: 'Dockerfile'
+  args:
+    - "--include=${{ inputs.include }}"
+    - "--exclude=${{ inputs.exclude }}"
 
