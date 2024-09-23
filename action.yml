@@ -8,11 +8,11 @@ inputs:
   include:
     description: 'Glob patterns of test results files to include'
     required: false
-    default: "**/TEST-*.xml"
+    default: '**/TEST-*.xml'
   exclude:
     description: 'Glob patterns of files and directories to exclude'
     required: false
-    default: ""
+    default: ''
   display:
     description: 'Which tests to display'
     required: false
@@ -23,13 +23,13 @@ inputs:
   output:
     description: 'Path for test report output file'
     required: false
-    default: ""
+    default: ''
 runs:
   using: 'docker'
   image: 'Dockerfile'
   args:
-    - "--include ${{ inputs.include }}"
-    - "--exclude ${{ inputs.exclude }}"
-    - "--display ${{ inputs.display }}"
-    - "--output ${{ inputs.output }}"
+    - '--include ${{ inputs.include }}'
+    - '--exclude ${{ inputs.exclude }}'
+    - '--display ${{ inputs.display }}'
+    - '--output ${{ inputs.output }}'
 
