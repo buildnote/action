@@ -36,5 +36,5 @@ runs:
     - '--exclude ${{ inputs.exclude }}'
     - '--display ${{ inputs.display }}'
     - '--output ${{ inputs.output }}'
-    - '--upload ${{ inputs.output }}'
+    - '--upload ${{ inputs.upload }}'
 
