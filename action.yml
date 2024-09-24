@@ -24,6 +24,10 @@ inputs:
     description: 'Path for test report output file'
     required: false
     default: ''
+  upload:
+    description: 'Upload results to buildnote.io'
+    required: false
+    default: 'false'
 runs:
   using: 'docker'
   image: 'Dockerfile'
@@ -32,4 +36,5 @@ runs:
     - '--exclude ${{ inputs.exclude }}'
     - '--display ${{ inputs.display }}'
     - '--output ${{ inputs.output }}'
+    - '--upload ${{ inputs.output }}'
 
