@@ -11483,7 +11483,7 @@ function installCli(requiredVersion) {
         const installedVersion = yield getVersion();
         core.debug(`Running buildnote version is: ${installedVersion}`);
         if (requiredVersion != installedVersion) {
-            throw new Error(`Installed version "${installedVersion}" did not the same as required "${requiredVersion}"`);
+            throw new Error(`Installed version "${installedVersion}" did not match required "${requiredVersion}"`);
         }
     });
 }
