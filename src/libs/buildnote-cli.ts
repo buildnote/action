@@ -84,13 +84,13 @@ export async function installCli(requiredVersion: string): Promise<void> {
     const downloaded = await tc.downloadTool(downloads[platform]);
     core.debug(`Successfully downloaded ${downloads[platform]} to ${downloaded}`)
 
-    await io.mv(downloaded, path.join(destination, 'bin', "buildnote"))
+    await io.cp(downloaded, path.join(destination, 'bin', "buildnote"))
   }
 
   const cachedPath = await tc.cacheDir(path.join(destination, 'bin'), 'buildnote', requiredVersion)
   core.addPath(cachedPath)
 
-  const installedVersion = await getVersion()
+  const installedVersion = (await exec.exec(`buildnote`, ['version'], true)).stdout.trim();
   core.debug(`Running buildnote version is: ${installedVersion}`)
 
   if (requiredVersion != installedVersion) {
