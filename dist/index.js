@@ -11424,7 +11424,7 @@ function getVersion() {
     return __awaiter(this, void 0, void 0, function* () {
         const res = yield exec_exec('buildnote', ['version']);
         if (res.success)
-            return res.stdout;
+            return res.stdout.trim();
         else
             return undefined;
     });
@@ -11464,6 +11464,9 @@ function installCli(requiredVersion) {
             else {
                 core.info(`Buildnote ${currentVersion} does not satisfy the desired version ${requiredVersion}. Proceeding to download`);
             }
+        }
+        else {
+            core.info(`Buildnote ${requiredVersion} not installed. Proceeding to download`);
         }
         const destination = external_path_.join(external_os_.homedir(), '.buildnote');
         if (currentVersion != requiredVersion) {
