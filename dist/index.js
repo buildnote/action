@@ -11476,11 +11476,11 @@ function installCli(requiredVersion) {
             core.debug(`Successfully created ${external_path_.join(destination, 'bin')}`);
             const downloaded = yield tool_cache.downloadTool(downloads[platform]);
             core.debug(`Successfully downloaded ${downloads[platform]} to ${downloaded}`);
-            yield io.mv(downloaded, external_path_.join(destination, 'bin', "buildnote"));
+            yield io.cp(downloaded, external_path_.join(destination, 'bin', "buildnote"));
         }
         const cachedPath = yield tool_cache.cacheDir(external_path_.join(destination, 'bin'), 'buildnote', requiredVersion);
         core.addPath(cachedPath);
-        const installedVersion = yield getVersion();
+        const installedVersion = (yield exec_exec(`buildnote`, ['version'], true)).stdout.trim();
         core.debug(`Running buildnote version is: ${installedVersion}`);
         if (requiredVersion != installedVersion) {
             throw new Error(`Installed version "${installedVersion}" did not match required "${requiredVersion}"`);
