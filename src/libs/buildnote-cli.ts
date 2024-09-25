@@ -13,7 +13,7 @@ export async function run(...args: string[]): Promise<exec.ExecResult> {
 export async function getVersion(): Promise<string | undefined> {
   const res = await exec.exec('buildnote', ['version']);
   if (res.success)
-    return res.stdout;
+    return res.stdout.trim();
   else
     return undefined;
 }
