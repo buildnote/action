@@ -25,7 +25,7 @@ jobs:
           git config user.name github-actions
           git config user.email github-actions@github.com
           git remote set-url origin https://x-access-token:${{ secrets.BUILDNOTE_RELEASE_PAT }}@github.com/${{ env.BUILDNOTE_RELEASE_REPO }}.git
-          git add -u --force dist/**
+          git add --force dist/**
           git commit -am"chore(dist): Update dist [automated commit]"
           git push origin
           git push
