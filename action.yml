@@ -20,10 +20,7 @@ inputs:
   display:
     description: 'Which tests to display'
     required: false
-    default: >
-      passed
-      failed
-      skipped
+    default: 'passed, failed, skipped'
   output:
     description: 'Path for test report output file'
     required: false
