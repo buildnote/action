@@ -11508,13 +11508,14 @@ const main_main = () => __awaiter(void 0, void 0, void 0, function* () {
     runAction();
 });
 const runAction = () => __awaiter(void 0, void 0, void 0, function* () {
+    core.startGroup(`Setup buildnote`);
     core.debug('Installing Buildnote CLI');
     yield installCli((0,main.getInput)('version'));
     const upload = (0,main.getBooleanInput)('upload');
     const include = (0,main.getMultilineInput)('include');
     const exclude = (0,main.getMultilineInput)('exclude');
     const display = (0,main.getInput)('display');
-    const output = (0,main.getInput)('output');
+    const output = (0,main.getInput)('output', { required: false }) || process.env.GITHUB_STEP_SUMMARY || '';
     const params = [
         "github", "test-summary",
         "--include", ...include,
@@ -11523,7 +11524,8 @@ const runAction = () => __awaiter(void 0, void 0, void 0, function* () {
         "--upload", upload.toString(),
         "--output", output
     ];
-    core.startGroup(`buildnote ` + params.join(' '));
+    core.endGroup();
+    core.startGroup(`Run buildnote`);
     const buildnoteOutput = yield run(...params);
     core.info(buildnoteOutput.stdout);
     core.error(buildnoteOutput.stderr);
