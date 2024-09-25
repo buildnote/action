@@ -4524,6 +4524,7 @@ const main = () => __awaiter(void 0, void 0, void 0, function* () {
     runAction();
 });
 const runAction = () => __awaiter(void 0, void 0, void 0, function* () {
+    core.debug('Installing Buildnote CLI');
     yield installCli();
     core.startGroup(`buildnote`);
     const output = yield run();
