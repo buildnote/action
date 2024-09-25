@@ -13,7 +13,6 @@ const runAction = async (): Promise<void> => {
   core.startGroup(`buildnote`);
   const output = await buildnoteCli.run();
 
-  // core.setOutput('output', output);
   core.info(output.stdout)
   core.error(output.stderr)
 
