@@ -1,5 +1,6 @@
 import * as core from '@actions/core';
 import * as buildnoteCli from './libs/buildnote-cli';
+import {getInput} from "actions-parsers";
 
 const main = async () => {
   runAction();
@@ -7,7 +8,7 @@ const main = async () => {
 
 const runAction = async (): Promise<void> => {
   core.debug('Installing Buildnote CLI');
-  await buildnoteCli.installCli();
+  await buildnoteCli.installCli(getInput('version'));
 
   core.startGroup(`buildnote`);
   const output = await buildnoteCli.run();
