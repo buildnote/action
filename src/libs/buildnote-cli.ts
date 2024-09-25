@@ -52,15 +52,15 @@ export async function installCli(): Promise<void> {
 
   switch (platform) {
     case 'windows-x64': {
-      await io.cp("buildnote-windows.exe", path.join(destination, 'bin', "buildnote"))
+      await io.cp("../buildnote-windows.exe", path.join(destination, 'bin', "buildnote"))
       break;
     }
     case 'linux-x64': {
-      await io.cp("buildnote-linux", path.join(destination, 'bin', "buildnote"))
+      await io.cp("../buildnote-linux", path.join(destination, 'bin', "buildnote"))
       break;
     }
     case 'darwin-x64': {
-      await io.cp("buildnote-mac", path.join(destination, 'bin', "buildnote"))
+      await io.cp("../buildnote-mac", path.join(destination, 'bin', "buildnote"))
       break;
     }
   }
