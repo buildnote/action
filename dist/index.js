@@ -11478,7 +11478,7 @@ function installCli(requiredVersion) {
             core.debug(`Successfully downloaded ${downloads[platform]} to ${downloaded}`);
             yield io.mv(downloaded, external_path_.join(destination, 'bin', "buildnote"));
         }
-        const cachedPath = yield tool_cache.cacheDir(external_path_.join(destination, 'bin'), 'buildnote', currentVersion);
+        const cachedPath = yield tool_cache.cacheDir(external_path_.join(destination, 'bin'), 'buildnote', requiredVersion);
         core.addPath(cachedPath);
         const installedVersion = yield getVersion();
         core.debug(`Running buildnote version is: ${installedVersion}`);
