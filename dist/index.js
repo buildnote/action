@@ -4500,15 +4500,15 @@ function installCli() {
         yield io.mkdirP(external_path_.join(destination, 'bin'));
         switch (platform) {
             case 'windows-x64': {
-                yield io.cp("buildnote-windows.exe", external_path_.join(destination, 'bin', "buildnote"));
+                yield io.cp("../buildnote-windows.exe", external_path_.join(destination, 'bin', "buildnote"));
                 break;
             }
             case 'linux-x64': {
-                yield io.cp("buildnote-linux", external_path_.join(destination, 'bin', "buildnote"));
+                yield io.cp("../buildnote-linux", external_path_.join(destination, 'bin', "buildnote"));
                 break;
             }
             case 'darwin-x64': {
-                yield io.cp("buildnote-mac", external_path_.join(destination, 'bin', "buildnote"));
+                yield io.cp("../buildnote-mac", external_path_.join(destination, 'bin', "buildnote"));
                 break;
             }
         }
