@@ -11404,8 +11404,8 @@ const exec_exec = (command, args = [], silent) => __awaiter(void 0, void 0, void
 
 // EXTERNAL MODULE: ./node_modules/@actions/tool-cache/lib/tool-cache.js
 var tool_cache = __nccwpck_require__(7784);
-;// CONCATENATED MODULE: external "node:fs"
-const external_node_fs_namespaceObject = require("node:fs");
+// EXTERNAL MODULE: external "fs"
+var external_fs_ = __nccwpck_require__(7147);
 ;// CONCATENATED MODULE: ./src/libs/buildnote-cli.ts
 
 
@@ -11480,7 +11480,7 @@ function installCli(requiredVersion) {
             const downloaded = yield tool_cache.downloadTool(downloads[platform]);
             core.debug(`Successfully downloaded ${downloads[platform]} to ${downloaded}`);
             yield io.cp(downloaded, external_path_.join(destination, 'bin', "buildnote"));
-            external_node_fs_namespaceObject.chmod(external_path_.join(destination, 'bin', "buildnote"), 0o744, (error) => {
+            external_fs_.chmod(external_path_.join(destination, 'bin', "buildnote"), 0o744, (error) => {
                 if (error) {
                     throw error;
                 }
