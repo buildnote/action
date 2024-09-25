@@ -7,6 +7,7 @@ const main = async () => {
 };
 
 const runAction = async (): Promise<void> => {
+  core.startGroup(`Setup buildnote`);
   core.debug('Installing Buildnote CLI');
   await buildnoteCli.installCli(getInput('version'));
 
@@ -25,7 +26,9 @@ const runAction = async (): Promise<void> => {
     "--output", output
   ]
 
-  core.startGroup(`buildnote `+params.join(' '));
+  core.endGroup();
+
+  core.startGroup(`Run buildnote`);
   const buildnoteOutput = await buildnoteCli.run(...params);
 
   core.info(buildnoteOutput.stdout)
