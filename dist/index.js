@@ -11514,7 +11514,6 @@ const runAction = () => __awaiter(void 0, void 0, void 0, function* () {
     yield installCli((0,main.getInput)('version'));
     core.startGroup(`buildnote`);
     const output = yield run();
-    // core.setOutput('output', output);
     core.info(output.stdout);
     core.error(output.stderr);
     core.endGroup();
