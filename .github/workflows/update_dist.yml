@@ -20,10 +20,12 @@ jobs:
           cache: yarn
       - run: yarn install
       - run: yarn build
-      - uses: stefanzweifel/git-auto-commit-action@v5
-        with:
-          file_pattern: dist/**
-          add_options: -u --force
-          commit_message: 'chore(dist): Update dist [automated commit]'
-          commit_user_name: Buildnote Bot
-          commit_user_email: github-actions@github.com
+      - name: Update dist
+        run: |
+          git config user.name github-actions
+          git config user.email github-actions@github.com
+          git remote set-url origin https://x-access-token:${{ secrets.BUILDNOTE_RELEASE_PAT }}@github.com/${{ env.BUILDNOTE_RELEASE_REPO }}.git
+          git add -u --force dist/**
+          git commit -am"chore(dist): Update dist [automated commit]"
+          git push origin
+          git push
