@@ -6,6 +6,7 @@ const main = async () => {
 };
 
 const runAction = async (): Promise<void> => {
+  core.debug('Installing Buildnote CLI');
   await buildnoteCli.installCli();
 
   core.startGroup(`buildnote`);
