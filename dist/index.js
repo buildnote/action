@@ -11517,7 +11517,7 @@ const runAction = () => __awaiter(void 0, void 0, void 0, function* () {
     const display = (0,main.getInput)('display');
     const output = (0,main.getInput)('output', { required: false }) || process.env.GITHUB_STEP_SUMMARY || '';
     const params = [
-        "github", "test-summary",
+        "test-summary",
         "--include", ...include,
         "--exclude", ...exclude,
         "--display", ...(display.split(",").map((item) => item.trim())),
