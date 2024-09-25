@@ -13,7 +13,7 @@ export function getPlatform(): string | undefined {
     'linux-x64': 'linux-x64',
     // 'linux-arm64': 'linux-arm64',
     'darwin-x64': 'darwin-x64',
-    // 'darwin-arm64': 'darwin-arm64',
+    'darwin-arm64': 'darwin-arm64',
     'win32-x64': 'windows-x64',
   };
 
@@ -49,18 +49,23 @@ export async function installCli(): Promise<void> {
   core.debug(`Successfully created ${destination}`);
 
   await io.mkdirP(path.join(destination, 'bin'))
+  core.debug(`Successfully created ${path.join(destination, 'bin')}`);
 
   switch (platform) {
     case 'windows-x64': {
-      await io.cp("../buildnote-windows.exe", path.join(destination, 'bin', "buildnote"))
+      await io.cp("buildnote-windows.exe", path.join(destination, 'bin', "buildnote"))
       break;
     }
     case 'linux-x64': {
-      await io.cp("../buildnote-linux", path.join(destination, 'bin', "buildnote"))
+      await io.cp("buildnote-linux", path.join(destination, 'bin', "buildnote"))
       break;
     }
     case 'darwin-x64': {
-      await io.cp("../buildnote-mac", path.join(destination, 'bin', "buildnote"))
+      await io.cp("buildnote-mac", path.join(destination, 'bin', "buildnote"))
+      break;
+    }
+    case 'darwin-arm64': {
+      await io.cp("buildnote-mac", path.join(destination, 'bin', "buildnote"))
       break;
     }
   }

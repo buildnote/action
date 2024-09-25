@@ -4474,11 +4474,12 @@ function getPlatform() {
         'linux-x64': 'linux-x64',
         // 'linux-arm64': 'linux-arm64',
         'darwin-x64': 'darwin-x64',
-        // 'darwin-arm64': 'darwin-arm64',
+        'darwin-arm64': 'darwin-arm64',
         'win32-x64': 'windows-x64',
     };
     const runnerPlatform = external_os_.platform();
     const runnerArch = external_os_.arch();
+    core.debug(`${runnerPlatform}-${runnerArch}`);
     return platforms[`${runnerPlatform}-${runnerArch}`];
 }
 function installCli() {
@@ -4498,21 +4499,26 @@ function installCli() {
         yield io.mkdirP(destination);
         core.debug(`Successfully created ${destination}`);
         yield io.mkdirP(external_path_.join(destination, 'bin'));
+        core.debug(`Successfully created ${external_path_.join(destination, 'bin')}`);
         switch (platform) {
             case 'windows-x64': {
-                yield io.cp("../buildnote-windows.exe", external_path_.join(destination, 'bin', "buildnote"));
+                yield io.cp("buildnote-windows.exe", external_path_.join(destination, 'bin', "buildnote"));
                 break;
             }
             case 'linux-x64': {
-                yield io.cp("../buildnote-linux", external_path_.join(destination, 'bin', "buildnote"));
+                yield io.cp("buildnote-linux", external_path_.join(destination, 'bin', "buildnote"));
                 break;
             }
             case 'darwin-x64': {
-                yield io.cp("../buildnote-mac", external_path_.join(destination, 'bin', "buildnote"));
+                yield io.cp("buildnote-mac", external_path_.join(destination, 'bin', "buildnote"));
+                break;
+            }
+            case 'darwin-arm64': {
+                yield io.cp("buildnote-mac", external_path_.join(destination, 'bin', "buildnote"));
                 break;
             }
         }
-        core.addPath(external_path_.join(destination, 'bin', "buildnote"));
+        core.addPath('"' + external_path_.join(destination, 'bin', "buildnote") + '"');
     });
 }
 
