@@ -60,6 +60,8 @@ export async function installCli(requiredVersion: string): Promise<void> {
     } else {
       core.info(`Buildnote ${currentVersion} does not satisfy the desired version ${requiredVersion}. Proceeding to download`);
     }
+  } else {
+    core.info(`Buildnote ${requiredVersion} not installed. Proceeding to download`);
   }
 
   const destination = path.join(os.homedir(), '.buildnote');
