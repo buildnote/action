@@ -11515,10 +11515,15 @@ const main_main = () => __awaiter(void 0, void 0, void 0, function* () {
 const runAction = () => __awaiter(void 0, void 0, void 0, function* () {
     core.debug('Installing Buildnote CLI');
     yield installCli((0,main.getInput)('version'));
+    const upload = (0,main.getBooleanInput)('upload');
+    const include = (0,main.getMultilineInput)('include');
+    const exclude = (0,main.getMultilineInput)('exclude');
+    const display = (0,main.getInput)('display');
+    const output = (0,main.getInput)('output');
     core.startGroup(`buildnote`);
-    const output = yield run();
-    core.info(output.stdout);
-    core.error(output.stderr);
+    const buildnoteOutput = yield run("github", "test-summary", "--include", ...include, "--exclude", ...exclude, "--display", ...(display.split(",").map((item) => item.trim())), "--upload", upload.toString(), "--output", output);
+    core.info(buildnoteOutput.stdout);
+    core.error(buildnoteOutput.stderr);
     core.endGroup();
 });
 (() => __awaiter(void 0, void 0, void 0, function* () {
