@@ -4479,7 +4479,6 @@ function getPlatform() {
     };
     const runnerPlatform = external_os_.platform();
     const runnerArch = external_os_.arch();
-    core.debug(`${runnerPlatform}-${runnerArch}`);
     return platforms[`${runnerPlatform}-${runnerArch}`];
 }
 function installCli() {
@@ -4518,7 +4517,7 @@ function installCli() {
                 break;
             }
         }
-        core.addPath('"' + external_path_.join(destination, 'bin', "buildnote") + '"');
+        core.addPath(external_path_.join(destination, 'bin', "buildnote"));
     });
 }
 
