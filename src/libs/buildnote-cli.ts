@@ -4,6 +4,7 @@ import * as core from '@actions/core';
 import * as io from '@actions/io';
 import * as exec from './exec';
 import * as tc from "@actions/tool-cache";
+import * as fs from "node:fs";
 
 export async function run(...args: string[]): Promise<exec.ExecResult> {
   return exec.exec(`buildnote`, args, true);
@@ -85,6 +86,14 @@ export async function installCli(requiredVersion: string): Promise<void> {
     core.debug(`Successfully downloaded ${downloads[platform]} to ${downloaded}`)
 
     await io.cp(downloaded, path.join(destination, 'bin', "buildnote"))
+
+    fs.chmod(path.join(destination, 'bin', "buildnote"), 0o744, (error) => {
+      if (error) {
+        throw error
+      } else {
+        core.info('Permissions updated successfully');
+      }
+    })
   }
 
   const cachedPath = await tc.cacheDir(path.join(destination, 'bin'), 'buildnote', requiredVersion)
