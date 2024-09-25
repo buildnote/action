@@ -42,7 +42,7 @@ export async function installCli(requiredVersion: string): Promise<void> {
   };
 
   const platform = getPlatform();
-  core.debug(`Platform: ${platform}`);
+  core.debug(`Platform ${platform}`);
 
   if (!platform) {
     throw new Error(
