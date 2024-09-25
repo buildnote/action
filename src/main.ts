@@ -14,7 +14,7 @@ const runAction = async (): Promise<void> => {
   const include = getMultilineInput('include');
   const exclude = getMultilineInput('exclude');
   const display = getInput('display');
-  const output = getInput('output');
+  const output = getInput('output', {required: false}) || process.env.GITHUB_STEP_SUMMARY || '';
 
   const params = [
     "github", "test-summary",
