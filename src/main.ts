@@ -18,7 +18,7 @@ const runAction = async (): Promise<void> => {
   const output = getInput('output', {required: false}) || process.env.GITHUB_STEP_SUMMARY || '';
 
   const params = [
-    "github", "test-summary",
+    "test-summary",
     "--include", ...include,
     "--exclude", ...exclude,
     "--display", ...(display.split(",").map((item) => item.trim())),

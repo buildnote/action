@@ -8,7 +8,7 @@ inputs:
   version:
     description: 'Version of Buildnote cli to use'
     required: false
-    default: '0.0.3'
+    default: '0.0.4'
   include:
     description: 'Glob patterns of test results files to include'
     required: false
