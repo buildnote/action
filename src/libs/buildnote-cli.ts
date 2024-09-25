@@ -87,7 +87,7 @@ export async function installCli(requiredVersion: string): Promise<void> {
     await io.mv(downloaded, path.join(destination, 'bin', "buildnote"))
   }
 
-  const cachedPath = await tc.cacheDir(path.join(destination, 'bin'), 'buildnote', currentVersion)
+  const cachedPath = await tc.cacheDir(path.join(destination, 'bin'), 'buildnote', requiredVersion)
   core.addPath(cachedPath)
 
   const installedVersion = await getVersion()
