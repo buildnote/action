@@ -14,20 +14,20 @@ const runAction = async (): Promise<void> => {
   const include = getMultilineInput('include');
   const exclude = getMultilineInput('exclude');
   const display = getInput('display');
-  const outputPath = getInput('output');
+  const output = getInput('output');
 
   core.startGroup(`buildnote`);
-  const output = await buildnoteCli.run(
+  const buildnoteOutput = await buildnoteCli.run(
     "github", "test-summary",
     "--include", ...include,
     "--exclude", ...exclude,
     "--display", ...(display.split(",").map((item) => item.trim())),
     "--upload", upload.toString(),
-    "--output", outputPath,
+    "--output", output,
   );
 
-  core.info(output.stdout)
-  core.error(output.stderr)
+  core.info(buildnoteOutput.stdout)
+  core.error(buildnoteOutput.stderr)
 
   core.endGroup();
 };
