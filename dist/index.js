@@ -11450,7 +11450,7 @@ function installCli(requiredVersion) {
             'windows-x64': `https://get.buildnote.io/releases/cli/buildnote-${requiredVersion}-windows-x64.exe`,
         };
         const platform = getPlatform();
-        core.debug(`Platform: ${platform}`);
+        core.debug(`Platform ${platform}`);
         if (!platform) {
             throw new Error('Unsupported operating system - Buildnote CLI is only released for Darwin (x64), Linux (x64) and Windows (x64)');
         }
