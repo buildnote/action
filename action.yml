@@ -18,7 +18,7 @@ inputs:
     required: false
     default: >
       passed
-      failed 
+      failed
       skipped
   output:
     description: 'Path for test report output file'
@@ -29,12 +29,5 @@ inputs:
     required: false
     default: 'false'
 runs:
-  using: 'docker'
-  image: 'Dockerfile'
-  args:
-    - '--include ${{ inputs.include }}'
-    - '--exclude ${{ inputs.exclude }}'
-    - '--display ${{ inputs.display }}'
-    - '--output ${{ inputs.output }}'
-    - '--upload ${{ inputs.upload }}'
-
+  using: 'node20'
+  main: 'dist/index.js'
