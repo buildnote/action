@@ -7,15 +7,20 @@ const main = async () => {
 };
 
 const runAction = async (): Promise<void> => {
-  core.startGroup(`Setup buildnote`);
-  core.debug('Installing Buildnote CLI');
-  await buildnoteCli.installCli(getInput('version'));
+  core.startGroup(`Setup buildnote`)
 
-  const upload = getBooleanInput('upload');
-  const include = getMultilineInput('include');
-  const exclude = getMultilineInput('exclude');
-  const display = getInput('display');
-  const output = getInput('output', {required: false}) || process.env.GITHUB_STEP_SUMMARY || '';
+  core.debug('Installing Buildnote CLI')
+  await buildnoteCli.installCli(getInput('version'))
+
+  const orgRepo = process.env.GITHUB_REPOSITORY.replace("/", ":")
+  const module = "-"
+  const build = process.env.GITHUB_RUN_ID+"_"+process.env.GITHUB_RUN_NUMBER
+  const descriptor = `${orgRepo}:${module}:${build}`
+  const upload = getBooleanInput('upload')
+  const include = getMultilineInput('include')
+  const exclude = getMultilineInput('exclude')
+  const display = getInput('display')
+  const output = getInput('output', {required: false}) || process.env.GITHUB_STEP_SUMMARY || ''
 
   const params = [
     "test-summary",
@@ -23,7 +28,8 @@ const runAction = async (): Promise<void> => {
     "--exclude", ...exclude,
     "--display", ...(display.split(",").map((item) => item.trim())),
     "--upload", upload.toString(),
-    "--output", output
+    "--output", output,
+    "--descriptor", descriptor
   ]
 
   core.endGroup();
