@@ -11,22 +11,26 @@ const runAction = async (): Promise<void> => {
 
   core.debug('Installing Buildnote CLI')
   await buildnoteCli.installCli(getInput('version'))
+  const installOnly = getBooleanInput("installOnly")
 
+  if (installOnly) {
+    core.info("Installed only")
+  }
+
+  core.endGroup();
+
+  if (installOnly) return;
+
+  core.startGroup(`Run buildnote`);
   const orgRepo = process.env.GITHUB_REPOSITORY.replace("/", ":")
   const module = "-"
-  const build = process.env.GITHUB_RUN_ID+"_"+process.env.GITHUB_RUN_NUMBER
+  const build = process.env.GITHUB_RUN_ID + "_" + process.env.GITHUB_RUN_NUMBER
   const descriptor = `${orgRepo}:${module}:${build}`
   const upload = getBooleanInput('upload')
   const include = getMultilineInput('include')
   const exclude = getMultilineInput('exclude')
   const display = getInput('display')
   const output = getInput('output', {required: false}) || process.env.GITHUB_STEP_SUMMARY || ''
-  const command = getMultilineInput('command')
-
-  if (command.length > 0) {
-    core.info(command.join("-"))
-    return;
-  }
 
   const params = [
     "test-summary",
@@ -38,9 +42,6 @@ const runAction = async (): Promise<void> => {
     "--descriptor", descriptor
   ]
 
-  core.endGroup();
-
-  core.startGroup(`Run buildnote`);
   const buildnoteOutput = await buildnoteCli.run(...params);
 
   core.info(buildnoteOutput.stdout)
