@@ -17,19 +17,18 @@ const runAction = async (): Promise<void> => {
   const build = process.env.GITHUB_RUN_ID+"_"+process.env.GITHUB_RUN_NUMBER
   const descriptor = `${orgRepo}:${module}:${build}`
   const upload = getBooleanInput('upload')
-  const include = getMultilineInput('include')
-  const exclude = getMultilineInput('exclude')
-  const display = getInput('display')
   const output = getInput('output', {required: false}) || process.env.GITHUB_STEP_SUMMARY || ''
+  const command = getMultilineInput('command')
+
+  if (command.length == 0) return;
 
   const params = [
-    "test-summary",
-    "--include", ...include,
-    "--exclude", ...exclude,
-    "--display", ...(display.split(",").map((item) => item.trim())),
+    "collect",
+    "--descriptor", descriptor,
     "--upload", upload.toString(),
     "--output", output,
-    "--descriptor", descriptor
+    ...command,
+
   ]
 
   core.endGroup();
