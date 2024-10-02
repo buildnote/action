@@ -11511,6 +11511,14 @@ const runAction = () => __awaiter(void 0, void 0, void 0, function* () {
     core.startGroup(`Setup buildnote`);
     core.debug('Installing Buildnote CLI');
     yield installCli((0,main.getInput)('version'));
+    const installOnly = (0,main.getBooleanInput)("installOnly");
+    if (installOnly) {
+        core.info("Installed only");
+    }
+    core.endGroup();
+    if (installOnly)
+        return;
+    core.startGroup(`Run buildnote`);
     const orgRepo = process.env.GITHUB_REPOSITORY.replace("/", ":");
     const module = "-";
     const build = process.env.GITHUB_RUN_ID + "_" + process.env.GITHUB_RUN_NUMBER;
@@ -11520,11 +11528,6 @@ const runAction = () => __awaiter(void 0, void 0, void 0, function* () {
     const exclude = (0,main.getMultilineInput)('exclude');
     const display = (0,main.getInput)('display');
     const output = (0,main.getInput)('output', { required: false }) || process.env.GITHUB_STEP_SUMMARY || '';
-    const command = (0,main.getMultilineInput)('command');
-    if (command.length > 0) {
-        core.info(command.join("-"));
-        return;
-    }
     const params = [
         "test-summary",
         "--include", ...include,
@@ -11534,8 +11537,6 @@ const runAction = () => __awaiter(void 0, void 0, void 0, function* () {
         "--output", output,
         "--descriptor", descriptor
     ];
-    core.endGroup();
-    core.startGroup(`Run buildnote`);
     const buildnoteOutput = yield run(...params);
     core.info(buildnoteOutput.stdout);
     core.error(buildnoteOutput.stderr);
