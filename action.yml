@@ -9,9 +9,14 @@ inputs:
     description: 'Version of Buildnote cli to use'
     required: false
     default: '0.0.4'
-  command:
-    description: 'Buildnote collect commands to execute'
+  include:
+    description: 'Glob patterns of test results files to include'
     required: false
+    default: '**/TEST-*.xml'
+  exclude:
+    description: 'Glob patterns of files and directories to exclude'
+    required: false
+    default: ''
   display:
     description: 'Which tests to display'
     required: false
