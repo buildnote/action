@@ -11520,6 +11520,11 @@ const runAction = () => __awaiter(void 0, void 0, void 0, function* () {
     const exclude = (0,main.getMultilineInput)('exclude');
     const display = (0,main.getInput)('display');
     const output = (0,main.getInput)('output', { required: false }) || process.env.GITHUB_STEP_SUMMARY || '';
+    const command = (0,main.getMultilineInput)('command');
+    if (command.length > 0) {
+        core.info(command.join("-"));
+        return;
+    }
     const params = [
         "test-summary",
         "--include", ...include,
