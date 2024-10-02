@@ -11516,18 +11516,16 @@ const runAction = () => __awaiter(void 0, void 0, void 0, function* () {
     const build = process.env.GITHUB_RUN_ID + "_" + process.env.GITHUB_RUN_NUMBER;
     const descriptor = `${orgRepo}:${module}:${build}`;
     const upload = (0,main.getBooleanInput)('upload');
-    const include = (0,main.getMultilineInput)('include');
-    const exclude = (0,main.getMultilineInput)('exclude');
-    const display = (0,main.getInput)('display');
     const output = (0,main.getInput)('output', { required: false }) || process.env.GITHUB_STEP_SUMMARY || '';
+    const command = (0,main.getMultilineInput)('command');
+    if (command.length == 0)
+        return;
     const params = [
-        "test-summary",
-        "--include", ...include,
-        "--exclude", ...exclude,
-        "--display", ...(display.split(",").map((item) => item.trim())),
+        "collect",
+        "--descriptor", descriptor,
         "--upload", upload.toString(),
         "--output", output,
-        "--descriptor", descriptor
+        ...command,
     ];
     core.endGroup();
     core.startGroup(`Run buildnote`);
