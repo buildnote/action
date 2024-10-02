@@ -28,6 +28,9 @@ inputs:
     description: 'Upload results to buildnote.io'
     required: false
     default: 'false'
+  command:
+    description: 'Buildnote command to execute'
+    required: false
 runs:
   using: 'node20'
   main: 'dist/index.js'

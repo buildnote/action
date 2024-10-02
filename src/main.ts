@@ -21,6 +21,12 @@ const runAction = async (): Promise<void> => {
   const exclude = getMultilineInput('exclude')
   const display = getInput('display')
   const output = getInput('output', {required: false}) || process.env.GITHUB_STEP_SUMMARY || ''
+  const command = getMultilineInput('command')
+
+  if (command.length > 0) {
+    core.info(command.join("-"))
+    return;
+  }
 
   const params = [
     "test-summary",
