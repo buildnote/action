@@ -28,6 +28,7 @@ const runAction = async (): Promise<void> => {
     "--upload", upload.toString(),
     "--output", output,
     ...command,
+
   ]
 
   core.endGroup();
