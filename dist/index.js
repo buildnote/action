@@ -11520,7 +11520,7 @@ const runAction = () => __awaiter(void 0, void 0, void 0, function* () {
         return;
     core.startGroup(`Run buildnote`);
     const orgRepo = process.env.GITHUB_REPOSITORY.replace("/", ":");
-    const module = "-";
+    const module = (0,main.getInput)('module');
     const build = process.env.GITHUB_RUN_ID + "_" + process.env.GITHUB_RUN_NUMBER;
     const descriptor = `${orgRepo}:${module}:${build}`;
     const upload = (0,main.getBooleanInput)('upload');
