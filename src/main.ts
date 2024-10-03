@@ -23,7 +23,7 @@ const runAction = async (): Promise<void> => {
 
   core.startGroup(`Run buildnote`);
   const orgRepo = process.env.GITHUB_REPOSITORY.replace("/", ":")
-  const module = "-"
+  const module = getInput('module')
   const build = process.env.GITHUB_RUN_ID + "_" + process.env.GITHUB_RUN_NUMBER
   const descriptor = `${orgRepo}:${module}:${build}`
   const upload = getBooleanInput('upload')
