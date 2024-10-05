@@ -20,6 +20,10 @@ inputs:
   output:
     description: 'Path for test report output file'
     required: false
+  collectOnly:
+    description: 'Collect events only without downloading the summary'
+    required: false
+    default: 'false'
   installOnly:
     description: 'Install buildnote without running command'
     required: false

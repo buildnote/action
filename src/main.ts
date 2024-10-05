@@ -27,6 +27,7 @@ const runAction = async (): Promise<void> => {
   const module = getInput('module')
   const build = process.env.GITHUB_RUN_ID + "_" + process.env.GITHUB_RUN_NUMBER
   const descriptor = `${orgRepo}:${module}:${build}`
+  const collectOnly = getBooleanInput("collectOnly")
   const command = getMultilineInput('command')
   const output = getInput('output', {required: false}) || process.env.GITHUB_STEP_SUMMARY || ''
 
@@ -34,7 +35,7 @@ const runAction = async (): Promise<void> => {
   try {
     let commandParams = [
       "collect", "--descriptor", descriptor,
-      "--upload", "true",
+      "--collectOnly", collectOnly.toString(),
       "--output", output
     ].concat(command);
 
