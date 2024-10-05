@@ -11525,10 +11525,16 @@ const runAction = () => __awaiter(void 0, void 0, void 0, function* () {
     const build = process.env.GITHUB_RUN_ID + "_" + process.env.GITHUB_RUN_NUMBER;
     const descriptor = `${orgRepo}:${module}:${build}`;
     const command = (0,main.getMultilineInput)('command');
+    const output = (0,main.getInput)('output', { required: false }) || process.env.GITHUB_STEP_SUMMARY || '';
     if (command.length > 0) {
         let fileName = '.buildnote-cli-params';
         try {
-            external_fs_.writeFileSync(fileName, command.join(" ").trim());
+            let commandParams = [
+                "collect", "--descriptor", descriptor,
+                "--upload", "true",
+                "--output", output
+            ].concat(command);
+            external_fs_.writeFileSync(fileName, commandParams.join(" ").trim());
             const buildnoteOutput = yield run(`@${fileName}`);
             core.info(buildnoteOutput.stdout);
             core.error(buildnoteOutput.stderr);
@@ -11542,10 +11548,10 @@ const runAction = () => __awaiter(void 0, void 0, void 0, function* () {
     }
     else {
         const upload = (0,main.getBooleanInput)('upload');
+        const output = (0,main.getInput)('output', { required: false }) || process.env.GITHUB_STEP_SUMMARY || '';
         const include = (0,main.getMultilineInput)('include');
         const exclude = (0,main.getMultilineInput)('exclude');
         const display = (0,main.getInput)('display');
-        const output = (0,main.getInput)('output', { required: false }) || process.env.GITHUB_STEP_SUMMARY || '';
         const params = [
             "test-summary",
             "--include", ...include,
