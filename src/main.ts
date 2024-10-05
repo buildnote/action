@@ -28,11 +28,19 @@ const runAction = async (): Promise<void> => {
   const build = process.env.GITHUB_RUN_ID + "_" + process.env.GITHUB_RUN_NUMBER
   const descriptor = `${orgRepo}:${module}:${build}`
   const command = getMultilineInput('command')
+  const output = getInput('output', {required: false}) || process.env.GITHUB_STEP_SUMMARY || ''
 
   if (command.length > 0) {
     let fileName = '.buildnote-cli-params';
     try {
-      fs.writeFileSync(fileName, command.join(" ").trim());
+      let commandParams = [
+        "collect", "--descriptor", descriptor,
+        "--upload", "true",
+        "--output", output
+      ].concat(command);
+
+      fs.writeFileSync(fileName, commandParams.join(" ").trim());
+
       const buildnoteOutput = await buildnoteCli.run(`@${fileName}`);
 
       core.info(buildnoteOutput.stdout)
@@ -44,10 +52,10 @@ const runAction = async (): Promise<void> => {
     }
   } else {
     const upload = getBooleanInput('upload')
+    const output = getInput('output', {required: false}) || process.env.GITHUB_STEP_SUMMARY || ''
     const include = getMultilineInput('include')
     const exclude = getMultilineInput('exclude')
     const display = getInput('display')
-    const output = getInput('output', {required: false}) || process.env.GITHUB_STEP_SUMMARY || ''
 
     const params = [
       "test-summary",
