@@ -30,47 +30,24 @@ const runAction = async (): Promise<void> => {
   const command = getMultilineInput('command')
   const output = getInput('output', {required: false}) || process.env.GITHUB_STEP_SUMMARY || ''
 
-  if (command.length > 0) {
-    let fileName = '.buildnote-cli-params';
-    try {
-      let commandParams = [
-        "collect", "--descriptor", descriptor,
-        "--upload", "true",
-        "--output", output
-      ].concat(command);
+  const fileName = '.buildnote-cli-params';
+  try {
+    let commandParams = [
+      "collect", "--descriptor", descriptor,
+      "--upload", "true",
+      "--output", output
+    ].concat(command);
 
-      fs.writeFileSync(fileName, commandParams.join(" ").trim());
+    fs.writeFileSync(fileName, commandParams.join(" ").trim());
 
-      const buildnoteOutput = await buildnoteCli.run(`@${fileName}`);
-
-      core.info(buildnoteOutput.stdout)
-      core.error(buildnoteOutput.stderr)
-    } catch (err) {
-      core.error(err);
-    } finally {
-      fs.unlinkSync(fileName)
-    }
-  } else {
-    const upload = getBooleanInput('upload')
-    const output = getInput('output', {required: false}) || process.env.GITHUB_STEP_SUMMARY || ''
-    const include = getMultilineInput('include')
-    const exclude = getMultilineInput('exclude')
-    const display = getInput('display')
-
-    const params = [
-      "test-summary",
-      "--include", ...include,
-      "--exclude", ...exclude,
-      "--display", ...(display.split(",").map((item) => item.trim())),
-      "--upload", upload.toString(),
-      "--output", output,
-      "--descriptor", descriptor
-    ]
-
-    const buildnoteOutput = await buildnoteCli.run(...params);
+    const buildnoteOutput = await buildnoteCli.run(`@${fileName}`);
 
     core.info(buildnoteOutput.stdout)
     core.error(buildnoteOutput.stderr)
+  } catch (err) {
+    core.error(err);
+  } finally {
+    fs.unlinkSync(fileName)
   }
 
   core.endGroup();
