@@ -11526,44 +11526,23 @@ const runAction = () => __awaiter(void 0, void 0, void 0, function* () {
     const descriptor = `${orgRepo}:${module}:${build}`;
     const command = (0,main.getMultilineInput)('command');
     const output = (0,main.getInput)('output', { required: false }) || process.env.GITHUB_STEP_SUMMARY || '';
-    if (command.length > 0) {
-        let fileName = '.buildnote-cli-params';
-        try {
-            let commandParams = [
-                "collect", "--descriptor", descriptor,
-                "--upload", "true",
-                "--output", output
-            ].concat(command);
-            external_fs_.writeFileSync(fileName, commandParams.join(" ").trim());
-            const buildnoteOutput = yield run(`@${fileName}`);
-            core.info(buildnoteOutput.stdout);
-            core.error(buildnoteOutput.stderr);
-        }
-        catch (err) {
-            core.error(err);
-        }
-        finally {
-            external_fs_.unlinkSync(fileName);
-        }
-    }
-    else {
-        const upload = (0,main.getBooleanInput)('upload');
-        const output = (0,main.getInput)('output', { required: false }) || process.env.GITHUB_STEP_SUMMARY || '';
-        const include = (0,main.getMultilineInput)('include');
-        const exclude = (0,main.getMultilineInput)('exclude');
-        const display = (0,main.getInput)('display');
-        const params = [
-            "test-summary",
-            "--include", ...include,
-            "--exclude", ...exclude,
-            "--display", ...(display.split(",").map((item) => item.trim())),
-            "--upload", upload.toString(),
-            "--output", output,
-            "--descriptor", descriptor
-        ];
-        const buildnoteOutput = yield run(...params);
+    const fileName = '.buildnote-cli-params';
+    try {
+        let commandParams = [
+            "collect", "--descriptor", descriptor,
+            "--upload", "true",
+            "--output", output
+        ].concat(command);
+        external_fs_.writeFileSync(fileName, commandParams.join(" ").trim());
+        const buildnoteOutput = yield run(`@${fileName}`);
         core.info(buildnoteOutput.stdout);
         core.error(buildnoteOutput.stderr);
+    }
+    catch (err) {
+        core.error(err);
+    }
+    finally {
+        external_fs_.unlinkSync(fileName);
     }
     core.endGroup();
 });
