@@ -13,6 +13,9 @@ inputs:
     description: 'Module to upload results for'
     required: false
     default: '-'
+  command:
+    description: 'Buildnote command to execute'
+    required: false
   include:
     description: 'Glob patterns of test results files to include'
     required: false

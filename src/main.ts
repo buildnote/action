@@ -1,6 +1,7 @@
 import * as core from '@actions/core';
 import * as buildnoteCli from './libs/buildnote-cli';
 import {getBooleanInput, getInput, getMultilineInput} from "actions-parsers";
+import * as fs from "fs";
 
 const main = async () => {
   runAction();
@@ -26,26 +27,43 @@ const runAction = async (): Promise<void> => {
   const module = getInput('module')
   const build = process.env.GITHUB_RUN_ID + "_" + process.env.GITHUB_RUN_NUMBER
   const descriptor = `${orgRepo}:${module}:${build}`
-  const upload = getBooleanInput('upload')
-  const include = getMultilineInput('include')
-  const exclude = getMultilineInput('exclude')
-  const display = getInput('display')
-  const output = getInput('output', {required: false}) || process.env.GITHUB_STEP_SUMMARY || ''
+  const command = getMultilineInput('command')
 
-  const params = [
-    "test-summary",
-    "--include", ...include,
-    "--exclude", ...exclude,
-    "--display", ...(display.split(",").map((item) => item.trim())),
-    "--upload", upload.toString(),
-    "--output", output,
-    "--descriptor", descriptor
-  ]
+  if (command.length > 0) {
+    let fileName = '.buildnote-cli-params';
+    try {
+      fs.writeFileSync(fileName, command.join(" ").trim());
+      const buildnoteOutput = await buildnoteCli.run(`@${fileName}`);
 
-  const buildnoteOutput = await buildnoteCli.run(...params);
+      core.info(buildnoteOutput.stdout)
+      core.error(buildnoteOutput.stderr)
+    } catch (err) {
+      core.error(err);
+    } finally {
+      fs.unlinkSync(fileName)
+    }
+  } else {
+    const upload = getBooleanInput('upload')
+    const include = getMultilineInput('include')
+    const exclude = getMultilineInput('exclude')
+    const display = getInput('display')
+    const output = getInput('output', {required: false}) || process.env.GITHUB_STEP_SUMMARY || ''
 
-  core.info(buildnoteOutput.stdout)
-  core.error(buildnoteOutput.stderr)
+    const params = [
+      "test-summary",
+      "--include", ...include,
+      "--exclude", ...exclude,
+      "--display", ...(display.split(",").map((item) => item.trim())),
+      "--upload", upload.toString(),
+      "--output", output,
+      "--descriptor", descriptor
+    ]
+
+    const buildnoteOutput = await buildnoteCli.run(...params);
+
+    core.info(buildnoteOutput.stdout)
+    core.error(buildnoteOutput.stderr)
+  }
 
   core.endGroup();
 };
