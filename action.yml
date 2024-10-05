@@ -17,6 +17,9 @@ inputs:
     description: 'Buildnote command to execute'
     required: false
     default: "test-results"
+  output:
+    description: 'Path for test report output file'
+    required: false
   installOnly:
     description: 'Install buildnote without running command'
     required: false
