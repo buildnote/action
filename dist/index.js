@@ -11524,13 +11524,14 @@ const runAction = () => __awaiter(void 0, void 0, void 0, function* () {
     const module = (0,main.getInput)('module');
     const build = process.env.GITHUB_RUN_ID + "_" + process.env.GITHUB_RUN_NUMBER;
     const descriptor = `${orgRepo}:${module}:${build}`;
+    const collectOnly = (0,main.getBooleanInput)("collectOnly");
     const command = (0,main.getMultilineInput)('command');
     const output = (0,main.getInput)('output', { required: false }) || process.env.GITHUB_STEP_SUMMARY || '';
     const fileName = '.buildnote-cli-params';
     try {
         let commandParams = [
             "collect", "--descriptor", descriptor,
-            "--upload", "true",
+            "--collectOnly", collectOnly.toString(),
             "--output", output
         ].concat(command);
         external_fs_.writeFileSync(fileName, commandParams.join(" ").trim());
