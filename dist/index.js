@@ -11531,7 +11531,7 @@ const runAction = () => __awaiter(void 0, void 0, void 0, function* () {
     try {
         let commandParams = [
             "collect", "--descriptor", descriptor,
-            "--collectOnly", collectOnly.toString(),
+            "--collect-only", collectOnly.toString(),
             "--output", output
         ].concat(command);
         external_fs_.writeFileSync(fileName, commandParams.join(" ").trim());
