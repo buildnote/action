@@ -11504,6 +11504,7 @@ var main = __nccwpck_require__(3295);
 
 
 
+
 const main_main = () => __awaiter(void 0, void 0, void 0, function* () {
     runAction();
 });
@@ -11523,23 +11524,41 @@ const runAction = () => __awaiter(void 0, void 0, void 0, function* () {
     const module = (0,main.getInput)('module');
     const build = process.env.GITHUB_RUN_ID + "_" + process.env.GITHUB_RUN_NUMBER;
     const descriptor = `${orgRepo}:${module}:${build}`;
-    const upload = (0,main.getBooleanInput)('upload');
-    const include = (0,main.getMultilineInput)('include');
-    const exclude = (0,main.getMultilineInput)('exclude');
-    const display = (0,main.getInput)('display');
-    const output = (0,main.getInput)('output', { required: false }) || process.env.GITHUB_STEP_SUMMARY || '';
-    const params = [
-        "test-summary",
-        "--include", ...include,
-        "--exclude", ...exclude,
-        "--display", ...(display.split(",").map((item) => item.trim())),
-        "--upload", upload.toString(),
-        "--output", output,
-        "--descriptor", descriptor
-    ];
-    const buildnoteOutput = yield run(...params);
-    core.info(buildnoteOutput.stdout);
-    core.error(buildnoteOutput.stderr);
+    const command = (0,main.getMultilineInput)('command');
+    if (command.length > 0) {
+        let fileName = '.buildnote-cli-params';
+        try {
+            external_fs_.writeFileSync(fileName, command.join(" ").trim());
+            const buildnoteOutput = yield run(`@${fileName}`);
+            core.info(buildnoteOutput.stdout);
+            core.error(buildnoteOutput.stderr);
+        }
+        catch (err) {
+            core.error(err);
+        }
+        finally {
+            external_fs_.unlinkSync(fileName);
+        }
+    }
+    else {
+        const upload = (0,main.getBooleanInput)('upload');
+        const include = (0,main.getMultilineInput)('include');
+        const exclude = (0,main.getMultilineInput)('exclude');
+        const display = (0,main.getInput)('display');
+        const output = (0,main.getInput)('output', { required: false }) || process.env.GITHUB_STEP_SUMMARY || '';
+        const params = [
+            "test-summary",
+            "--include", ...include,
+            "--exclude", ...exclude,
+            "--display", ...(display.split(",").map((item) => item.trim())),
+            "--upload", upload.toString(),
+            "--output", output,
+            "--descriptor", descriptor
+        ];
+        const buildnoteOutput = yield run(...params);
+        core.info(buildnoteOutput.stdout);
+        core.error(buildnoteOutput.stderr);
+    }
     core.endGroup();
 });
 (() => __awaiter(void 0, void 0, void 0, function* () {
