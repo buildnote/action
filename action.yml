@@ -16,25 +16,7 @@ inputs:
   command:
     description: 'Buildnote command to execute'
     required: false
-  include:
-    description: 'Glob patterns of test results files to include'
-    required: false
-    default: '**/TEST-*.xml'
-  exclude:
-    description: 'Glob patterns of files and directories to exclude'
-    required: false
-    default: ''
-  display:
-    description: 'Which tests to display'
-    required: false
-    default: 'passed, failed, skipped'
-  output:
-    description: 'Path for test report output file'
-    required: false
-  upload:
-    description: 'Upload results to buildnote.io'
-    required: false
-    default: 'false'
+    default: "test-results"
   installOnly:
     description: 'Install buildnote without running command'
     required: false
