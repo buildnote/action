@@ -35,7 +35,7 @@ const runAction = async (): Promise<void> => {
   try {
     let commandParams = [
       "collect", "--descriptor", descriptor,
-      "--collectOnly", collectOnly.toString(),
+      "--collect-only", collectOnly.toString(),
       "--output", output
     ].concat(command);
 
