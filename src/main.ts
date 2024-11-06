@@ -25,7 +25,7 @@ const runAction = async (): Promise<void> => {
   core.startGroup(`Run buildnote`);
   const orgRepo = process.env.GITHUB_REPOSITORY.replace("/", ":")
   const module = getInput('module')
-  const build = `${process.env.GITHUB_RUN_ID}_${process.env.GITHUB_RUN_NUMBER}_${process.env.GITHUB_RUN_ATTEMPT}`
+  const build = `${process.env.GITHUB_RUN_ID}_${process.env.GITHUB_RUN_ATTEMPT}`
   const descriptor = `${orgRepo}:${module}:${build}`
   const collectOnly = getBooleanInput("collectOnly")
   const command = getMultilineInput('command')
