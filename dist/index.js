@@ -11522,7 +11522,7 @@ const runAction = () => __awaiter(void 0, void 0, void 0, function* () {
     core.startGroup(`Run buildnote`);
     const orgRepo = process.env.GITHUB_REPOSITORY.replace("/", ":");
     const module = (0,main.getInput)('module');
-    const build = `${process.env.GITHUB_RUN_ID}_${process.env.GITHUB_RUN_NUMBER}_${process.env.GITHUB_RUN_ATTEMPT}`;
+    const build = `${process.env.GITHUB_RUN_ID}_${process.env.GITHUB_RUN_ATTEMPT}`;
     const descriptor = `${orgRepo}:${module}:${build}`;
     const collectOnly = (0,main.getBooleanInput)("collectOnly");
     const command = (0,main.getMultilineInput)('command');
