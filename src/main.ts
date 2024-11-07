@@ -24,6 +24,12 @@ const runAction = async (): Promise<void> => {
 
   core.startGroup(`Run buildnote`);
   const orgRepo = process.env.GITHUB_REPOSITORY.replace("/", ":")
+  /*
+  Derive module from GITHUB_WORKFLOW
+  The name of the workflow. For example, My test workflow.
+  If the workflow file doesn't specify a name, the value of this variable is the full
+  path of the workflow file in the repository.
+  */
   const module = getInput('module')
   const build = `${process.env.GITHUB_RUN_ID}_${process.env.GITHUB_RUN_ATTEMPT}`
   const descriptor = `${orgRepo}:${module}:${build}`
