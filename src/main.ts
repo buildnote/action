@@ -2,6 +2,7 @@ import * as core from '@actions/core';
 import * as buildnoteCli from './libs/buildnote-cli';
 import {getBooleanInput, getInput, getMultilineInput} from "actions-parsers";
 import * as fs from "fs";
+import {moduleIdFrom} from "./libs/utils";
 
 const main = async () => {
   runAction();
@@ -30,7 +31,7 @@ const runAction = async (): Promise<void> => {
   If the workflow file doesn't specify a name, the value of this variable is the full
   path of the workflow file in the repository.
   */
-  const module = getInput('module')
+  const module = moduleIdFrom(getInput('module', {required: false}) || process.env.GITHUB_WORKFLOW || '')
   const build = `${process.env.GITHUB_RUN_ID}_${process.env.GITHUB_RUN_ATTEMPT}`
   const descriptor = `${orgRepo}:${module}:${build}`
   const collectOnly = getBooleanInput("collectOnly")

@@ -12,7 +12,6 @@ inputs:
   module:
     description: 'Module to upload results for'
     required: false
-    default: '-'
   command:
     description: 'Buildnote command to execute'
     required: false
