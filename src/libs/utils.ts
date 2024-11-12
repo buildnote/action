@@ -18,7 +18,7 @@ export function moduleIdFrom(input: string): string {
   const trimmedInput = input.trim()
   if (trimmedInput == "") return "-"
 
-  const githubFilePrefix = ".github/workflows/";
+  const githubFilePrefix = ".github/workflows/"
   const sanitisedForGithub = !trimmedInput.startsWith(githubFilePrefix) ? trimmedInput : trimmedInput
     .replace(githubFilePrefix, "")
     .trim()
