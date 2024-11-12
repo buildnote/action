@@ -11499,7 +11499,33 @@ function installCli(requiredVersion) {
 
 // EXTERNAL MODULE: ./node_modules/actions-parsers/dist/main.js
 var main = __nccwpck_require__(3295);
+;// CONCATENATED MODULE: ./src/libs/utils.ts
+function parseSemicolorToArray(input) {
+    if (!input) {
+        return undefined;
+    }
+    return input.reduce((acc, line) => acc
+        .concat(line.split(','))
+        .filter((x) => x !== '')
+        .map((x) => x.trim()), []);
+}
+function moduleIdFrom(input) {
+    const trimmedInput = input.trim();
+    if (trimmedInput == "")
+        return "-";
+    const githubFilePrefix = ".github/workflows/";
+    const sanitisedForGithub = !trimmedInput.startsWith(githubFilePrefix) ? trimmedInput : trimmedInput
+        .replace(githubFilePrefix, "")
+        .trim()
+        .replace(/\.yaml$/gi, "")
+        .replace(/\.yml$/gi, "");
+    return sanitisedForGithub
+        .replace(/[^A-Za-z0-9-+_.]/gi, "-")
+        .toLowerCase();
+}
+
 ;// CONCATENATED MODULE: ./src/main.ts
+
 
 
 
@@ -11527,7 +11553,7 @@ const runAction = () => __awaiter(void 0, void 0, void 0, function* () {
     If the workflow file doesn't specify a name, the value of this variable is the full
     path of the workflow file in the repository.
     */
-    const module = (0,main.getInput)('module');
+    const module = moduleIdFrom((0,main.getInput)('module', { required: false }) || process.env.GITHUB_WORKFLOW || '');
     const build = `${process.env.GITHUB_RUN_ID}_${process.env.GITHUB_RUN_ATTEMPT}`;
     const descriptor = `${orgRepo}:${module}:${build}`;
     const collectOnly = (0,main.getBooleanInput)("collectOnly");
