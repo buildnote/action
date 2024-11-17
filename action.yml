@@ -3,7 +3,7 @@ description: 'Action wrapping Buildnote CLI'
 author: 'Buildnote'
 branding:
   icon: 'code'
-  color: 'gray-dark'
+  color: '#7434A4'
 inputs:
   version:
     description: 'Version of Buildnote cli to use'
