@@ -11514,14 +11514,11 @@ function moduleIdFrom(input) {
     if (trimmedInput == "")
         return "-";
     const githubFilePrefix = ".github/workflows/";
-    const sanitisedForGithub = !trimmedInput.startsWith(githubFilePrefix) ? trimmedInput : trimmedInput
+    return !trimmedInput.startsWith(githubFilePrefix) ? trimmedInput : trimmedInput
         .replace(githubFilePrefix, "")
         .trim()
         .replace(/\.yaml$/gi, "")
         .replace(/\.yml$/gi, "");
-    return sanitisedForGithub
-        .replace(/[^A-Za-z0-9-+_.]/gi, "-")
-        .toLowerCase();
 }
 
 ;// CONCATENATED MODULE: ./src/main.ts
@@ -11546,23 +11543,22 @@ const runAction = () => __awaiter(void 0, void 0, void 0, function* () {
     if (installOnly)
         return;
     core.startGroup(`Run buildnote`);
-    const orgRepo = process.env.GITHUB_REPOSITORY.replace("/", ":");
-    /*
-    Derive module from GITHUB_WORKFLOW
-    The name of the workflow. For example, My test workflow.
-    If the workflow file doesn't specify a name, the value of this variable is the full
-    path of the workflow file in the repository.
-    */
-    const module = moduleIdFrom((0,main.getInput)('module', { required: false }) || process.env.GITHUB_WORKFLOW || '');
+    const orgRepo = process.env.GITHUB_REPOSITORY.split("/");
+    const org = orgRepo[0];
+    const project = orgRepo[1];
+    const module = moduleIdFrom(process.env.GITHUB_WORKFLOW || '');
     const build = `${process.env.GITHUB_RUN_ID}_${process.env.GITHUB_RUN_ATTEMPT}`;
-    const descriptor = `${orgRepo}:${module}:${build}`;
     const collectOnly = (0,main.getBooleanInput)("collectOnly");
     const command = (0,main.getMultilineInput)('command');
     const output = (0,main.getInput)('output', { required: false }) || process.env.GITHUB_STEP_SUMMARY || '';
     const fileName = '.buildnote-cli-params';
     try {
-        let commandParams = [
-            "collect", "--descriptor", descriptor,
+        const commandParams = [
+            "collect",
+            "--org", org,
+            "--project", project,
+            "--module", module,
+            "--build", build,
             "--collect-only", collectOnly.toString(),
             "--output", output
         ].concat(command);
