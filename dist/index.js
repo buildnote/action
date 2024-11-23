@@ -11500,15 +11500,6 @@ function installCli(requiredVersion) {
 // EXTERNAL MODULE: ./node_modules/actions-parsers/dist/main.js
 var main = __nccwpck_require__(3295);
 ;// CONCATENATED MODULE: ./src/libs/utils.ts
-function parseSemicolorToArray(input) {
-    if (!input) {
-        return undefined;
-    }
-    return input.reduce((acc, line) => acc
-        .concat(line.split(','))
-        .filter((x) => x !== '')
-        .map((x) => x.trim()), []);
-}
 function moduleIdFrom(input) {
     const trimmedInput = input.trim();
     if (trimmedInput == "")
@@ -11519,6 +11510,9 @@ function moduleIdFrom(input) {
         .trim()
         .replace(/\.yaml$/gi, "")
         .replace(/\.yml$/gi, "");
+}
+function quote(value) {
+    return JSON.stringify(value);
 }
 
 ;// CONCATENATED MODULE: ./src/main.ts
@@ -11555,12 +11549,12 @@ const runAction = () => __awaiter(void 0, void 0, void 0, function* () {
     try {
         const commandParams = [
             "collect",
-            "--org", org,
-            "--project", project,
-            "--module", module,
-            "--build", build,
-            "--collect-only", collectOnly.toString(),
-            "--output", output
+            "--org=" + quote(org),
+            "--project=" + quote(project),
+            "--module=" + quote(module),
+            "--build=" + quote(build),
+            "--collect-only=" + quote(collectOnly.toString()),
+            "--output=" + quote(output)
         ].concat(command);
         external_fs_.writeFileSync(fileName, commandParams.join(" ").trim());
         const buildnoteOutput = yield run(`@${fileName}`);
