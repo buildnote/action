@@ -19,14 +19,10 @@ export function moduleIdFrom(input: string): string {
   if (trimmedInput == "") return "-"
 
   const githubFilePrefix = ".github/workflows/"
-  const sanitisedForGithub = !trimmedInput.startsWith(githubFilePrefix) ? trimmedInput : trimmedInput
+  return !trimmedInput.startsWith(githubFilePrefix) ? trimmedInput : trimmedInput
     .replace(githubFilePrefix, "")
     .trim()
     .replace(/\.yaml$/gi, "")
     .replace(/\.yml$/gi, "")
-
-  return sanitisedForGithub
-    .replace(/[^A-Za-z0-9-+_.]/gi, "-")
-    .toLowerCase()
 }
 

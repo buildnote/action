@@ -1,4 +1,4 @@
-name: 'Buildnote GitHub Action'
+name: 'Buildnote Action'
 description: 'Action wrapping Buildnote CLI'
 author: 'Buildnote'
 branding:
@@ -8,10 +8,7 @@ inputs:
   version:
     description: 'Version of Buildnote cli to use'
     required: false
-    default: '0.0.4'
-  module:
-    description: 'Module to upload results for'
-    required: false
+    default: '0.0.5'
   command:
     description: 'Buildnote command to execute'
     required: false

@@ -17,9 +17,10 @@ describe('utils.ts', () => {
     expect(moduleIdFrom('hello-world')).toBe('hello-world');
     expect(moduleIdFrom('hello.yaml_world')).toBe('hello.yaml_world');
     expect(moduleIdFrom('hello.world')).toBe('hello.world');
-    expect(moduleIdFrom('hello:world')).toBe('hello-world');
-    expect(moduleIdFrom('hello,world')).toBe('hello-world');
-    expect(moduleIdFrom(' hello world ')).toBe('hello-world');
-    expect(moduleIdFrom('HellO WorlD ')).toBe('hello-world');
+    expect(moduleIdFrom('hello:world')).toBe('hello:world');
+    expect(moduleIdFrom('hello,world')).toBe('hello,world');
+    expect(moduleIdFrom(' hello world ')).toBe('hello world');
+    expect(moduleIdFrom('HellO WorlD ')).toBe('HellO WorlD');
+    expect(moduleIdFrom('HellO / WorlD')).toBe('HellO / WorlD');
   })
 });
