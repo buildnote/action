@@ -2,7 +2,7 @@ import * as core from '@actions/core';
 import * as buildnoteCli from './libs/buildnote-cli';
 import {getBooleanInput, getInput, getMultilineInput} from "actions-parsers";
 import * as fs from "fs";
-import {moduleIdFrom} from "./libs/utils";
+import {moduleIdFrom, quote} from "./libs/utils";
 
 const main = async () => {
   runAction();
@@ -37,12 +37,12 @@ const runAction = async (): Promise<void> => {
   try {
     const commandParams = [
       "collect",
-      "--org", org,
-      "--project", project,
-      "--module", module,
-      "--build", build,
-      "--collect-only", collectOnly.toString(),
-      "--output", output
+      "--org=" + quote(org),
+      "--project=" + quote(project),
+      "--module=" + quote(module),
+      "--build=" + quote(build),
+      "--collect-only=" + quote(collectOnly.toString()),
+      "--output=" + quote(output)
     ].concat(command);
 
     fs.writeFileSync(fileName, commandParams.join(" ").trim());
@@ -59,6 +59,7 @@ const runAction = async (): Promise<void> => {
 
   core.endGroup();
 };
+
 
 (async () => {
   try {
