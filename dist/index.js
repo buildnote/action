@@ -11526,37 +11526,58 @@ const main_main = () => __awaiter(void 0, void 0, void 0, function* () {
     runAction();
 });
 const runAction = () => __awaiter(void 0, void 0, void 0, function* () {
-    core.startGroup(`Setup buildnote`);
-    core.debug('Installing Buildnote CLI');
+    const supportedCommands = ["collect", "report", "version"];
     yield installCli((0,main.getInput)('version'));
     const installOnly = (0,main.getBooleanInput)("installOnly");
     if (installOnly) {
         core.info("Installed only");
     }
-    core.endGroup();
     if (installOnly)
         return;
-    core.startGroup(`Run buildnote`);
     const orgRepo = process.env.GITHUB_REPOSITORY.split("/");
     const org = orgRepo[0];
     const project = orgRepo[1];
     const module = moduleIdFrom(process.env.GITHUB_WORKFLOW || '');
     const build = `${process.env.GITHUB_RUN_ID}_${process.env.GITHUB_RUN_ATTEMPT}`;
     const collectOnly = (0,main.getBooleanInput)("collectOnly");
-    const command = (0,main.getMultilineInput)('command');
+    const command = (0,main.getInput)('command');
+    const params = (0,main.getMultilineInput)('params');
     const output = (0,main.getInput)('output', { required: false }) || process.env.GITHUB_STEP_SUMMARY || '';
+    if (!(command in supportedCommands)) {
+        core.error(`Invalid command '${command}'. Supported commands are [${supportedCommands.join(", ")}]`);
+        return;
+    }
     const fileName = '.buildnote-cli-params';
     try {
-        const commandParams = [
-            "collect",
-            "--org=" + quote(org),
-            "--project=" + quote(project),
-            "--module=" + quote(module),
-            "--build=" + quote(build),
-            "--collect-only=" + quote(collectOnly.toString()),
-            "--output=" + quote(output)
-        ].concat(command);
-        external_fs_.writeFileSync(fileName, commandParams.join(" ").trim());
+        let options;
+        switch (command) {
+            case "collect":
+                options = [
+                    "--org=" + quote(org),
+                    "--project=" + quote(project),
+                    "--module=" + quote(module),
+                    "--build=" + quote(build),
+                    "--collect-only=" + quote(collectOnly.toString()),
+                    "--output=" + quote(output)
+                ];
+                break;
+            case "report":
+                options = [
+                    "--org=" + quote(org),
+                    "--project=" + quote(project),
+                    "--module=" + quote(module),
+                    "--build=" + quote(build),
+                    "--output=" + quote(output)
+                ];
+                break;
+            case "version":
+                options = [];
+                break;
+            default:
+                return;
+        }
+        const fullCommand = [command, ...options, ...params];
+        external_fs_.writeFileSync(fileName, fullCommand.join(" ").trim());
         const buildnoteOutput = yield run(`@${fileName}`);
         core.info(buildnoteOutput.stdout);
         core.error(buildnoteOutput.stderr);
@@ -11567,7 +11588,6 @@ const runAction = () => __awaiter(void 0, void 0, void 0, function* () {
     finally {
         external_fs_.unlinkSync(fileName);
     }
-    core.endGroup();
 });
 (() => __awaiter(void 0, void 0, void 0, function* () {
     try {
