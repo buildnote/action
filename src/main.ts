@@ -30,7 +30,7 @@ const runAction = async (): Promise<void> => {
   const params = getMultilineInput('params')
   const output = getInput('output', {required: false}) || process.env.GITHUB_STEP_SUMMARY || ''
 
-  if (!(command in supportedCommands)) {
+  if (supportedCommands.indexOf(command) < 0) {
     core.error(`Invalid command '${command}'. Supported commands are [${supportedCommands.join(", ")}]`)
     return
   }
