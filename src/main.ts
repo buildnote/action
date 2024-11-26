@@ -9,9 +9,8 @@ const main = async () => {
 };
 
 const runAction = async (): Promise<void> => {
-  core.startGroup(`Setup buildnote`)
+  const supportedCommands = ["collect", "report", "version"]
 
-  core.debug('Installing Buildnote CLI')
   await buildnoteCli.installCli(getInput('version'))
   const installOnly = getBooleanInput("installOnly")
 
@@ -19,33 +18,61 @@ const runAction = async (): Promise<void> => {
     core.info("Installed only")
   }
 
-  core.endGroup();
-
   if (installOnly) return;
 
-  core.startGroup(`Run buildnote`);
   const orgRepo = process.env.GITHUB_REPOSITORY.split("/")
   const org = orgRepo[0]
   const project = orgRepo[1]
   const module = moduleIdFrom(process.env.GITHUB_WORKFLOW || '')
   const build = `${process.env.GITHUB_RUN_ID}_${process.env.GITHUB_RUN_ATTEMPT}`
   const collectOnly = getBooleanInput("collectOnly")
-  const command = getMultilineInput('command')
+  const command: string = getInput('command')
+  const params = getMultilineInput('params')
   const output = getInput('output', {required: false}) || process.env.GITHUB_STEP_SUMMARY || ''
+
+  if (!(command in supportedCommands)) {
+    core.error(`Invalid command '${command}'. Supported commands are [${supportedCommands.join(", ")}]`)
+    return
+  }
 
   const fileName = '.buildnote-cli-params';
   try {
-    const commandParams = [
-      "collect",
-      "--org=" + quote(org),
-      "--project=" + quote(project),
-      "--module=" + quote(module),
-      "--build=" + quote(build),
-      "--collect-only=" + quote(collectOnly.toString()),
-      "--output=" + quote(output)
-    ].concat(command);
+    let options: string[]
 
-    fs.writeFileSync(fileName, commandParams.join(" ").trim());
+    switch (command) {
+      case "collect":
+        options = [
+          "--org=" + quote(org),
+          "--project=" + quote(project),
+          "--module=" + quote(module),
+          "--build=" + quote(build),
+          "--collect-only=" + quote(collectOnly.toString()),
+          "--output=" + quote(output)
+        ]
+        break;
+
+      case "report":
+        options = [
+          "--org=" + quote(org),
+          "--project=" + quote(project),
+          "--module=" + quote(module),
+          "--build=" + quote(build),
+          "--output=" + quote(output)
+        ]
+        break;
+
+      case "version":
+        options = []
+        break;
+
+      default:
+        return
+    }
+
+
+    const fullCommand = [command, ...options, ...params];
+
+    fs.writeFileSync(fileName, fullCommand.join(" ").trim());
 
     const buildnoteOutput = await buildnoteCli.run(`@${fileName}`);
 
@@ -56,8 +83,6 @@ const runAction = async (): Promise<void> => {
   } finally {
     fs.unlinkSync(fileName)
   }
-
-  core.endGroup();
 };
 
 

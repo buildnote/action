@@ -10,9 +10,12 @@ inputs:
     required: false
     default: '0.0.5'
   command:
-    description: 'Buildnote command to execute'
+    description: 'Buildnote command to execute (report, collect, version)'
     required: false
-    default: "test-results"
+    default: "report"
+  params:
+    description: 'Additional command parameters'
+    required: false
   output:
     description: 'Path for test report output file'
     required: false
