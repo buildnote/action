@@ -11543,7 +11543,7 @@ const runAction = () => __awaiter(void 0, void 0, void 0, function* () {
     const command = (0,main.getInput)('command');
     const params = (0,main.getMultilineInput)('params');
     const output = (0,main.getInput)('output', { required: false }) || process.env.GITHUB_STEP_SUMMARY || '';
-    if (!(command in supportedCommands)) {
+    if (supportedCommands.indexOf(command) < 0) {
         core.error(`Invalid command '${command}'. Supported commands are [${supportedCommands.join(", ")}]`);
         return;
     }
