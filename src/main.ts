@@ -25,6 +25,8 @@ const runAction = async (): Promise<void> => {
   const project = orgRepo[1]
   const module = moduleIdFrom(process.env.GITHUB_WORKFLOW || '')
   const build = `${process.env.GITHUB_RUN_ID}_${process.env.GITHUB_RUN_ATTEMPT}`
+  const sha = process.env.GITHUB_SHA
+  const ref = process.env.GITHUB_REF
   const collectOnly = getBooleanInput("collectOnly")
   const command: string = getInput('command')
   const params = getMultilineInput('params')
@@ -46,6 +48,8 @@ const runAction = async (): Promise<void> => {
           "--project=" + quote(project),
           "--module=" + quote(module),
           "--build=" + quote(build),
+          "--sha=" + quote(sha),
+          "--ref=" + quote(ref),
           "--collect-only=" + quote(collectOnly.toString()),
           "--output=" + quote(output)
         ]
@@ -57,6 +61,8 @@ const runAction = async (): Promise<void> => {
           "--project=" + quote(project),
           "--module=" + quote(module),
           "--build=" + quote(build),
+          "--sha=" + quote(sha),
+          "--ref=" + quote(ref),
           "--output=" + quote(output)
         ]
         break;
