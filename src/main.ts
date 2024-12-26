@@ -27,6 +27,7 @@ const runAction = async (): Promise<void> => {
   const build = `${process.env.GITHUB_RUN_ID}_${process.env.GITHUB_RUN_ATTEMPT}`
   const sha = process.env.GITHUB_SHA
   const ref = process.env.GITHUB_REF
+  const submitter = process.env.GITHUB_TRIGGERING_ACTOR
   const collectOnly = getBooleanInput("collectOnly")
   const command: string = getInput('command')
   const params = getMultilineInput('params')
@@ -48,6 +49,7 @@ const runAction = async (): Promise<void> => {
           "--project=" + quote(project),
           "--module=" + quote(module),
           "--build=" + quote(build),
+          "--submitter=" + quote(submitter),
           "--sha=" + quote(sha),
           "--ref=" + quote(ref),
           "--collect-only=" + quote(collectOnly.toString()),
@@ -61,6 +63,7 @@ const runAction = async (): Promise<void> => {
           "--project=" + quote(project),
           "--module=" + quote(module),
           "--build=" + quote(build),
+          "--submitter=" + quote(submitter),
           "--sha=" + quote(sha),
           "--ref=" + quote(ref),
           "--output=" + quote(output)
