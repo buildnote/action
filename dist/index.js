@@ -11526,7 +11526,7 @@ const main_main = () => __awaiter(void 0, void 0, void 0, function* () {
     runAction();
 });
 const runAction = () => __awaiter(void 0, void 0, void 0, function* () {
-    const supportedCommands = ["collect", "report", "version"];
+    const supportedCommands = ["collect", "report", "submit", "version"];
     yield installCli((0,main.getInput)('version'));
     const installOnly = (0,main.getBooleanInput)("installOnly");
     if (installOnly) {
@@ -11554,7 +11554,7 @@ const runAction = () => __awaiter(void 0, void 0, void 0, function* () {
     try {
         let options;
         switch (command) {
-            case "collect":
+            case "submit":
                 options = [
                     "--org=" + quote(org),
                     "--project=" + quote(project),
@@ -11565,6 +11565,17 @@ const runAction = () => __awaiter(void 0, void 0, void 0, function* () {
                     "--ref=" + quote(ref),
                     "--collect-only=" + quote(collectOnly.toString()),
                     "--output=" + quote(output)
+                ];
+                break;
+            case "collect":
+                options = [
+                    "--org=" + quote(org),
+                    "--project=" + quote(project),
+                    "--module=" + quote(module),
+                    "--build=" + quote(build),
+                    "--submitter=" + quote(submitter),
+                    "--sha=" + quote(sha),
+                    "--ref=" + quote(ref),
                 ];
                 break;
             case "report":
