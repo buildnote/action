@@ -8,11 +8,11 @@ inputs:
   version:
     description: 'Version of Buildnote cli to use'
     required: false
-    default: '0.0.9'
+    default: '0.0.10'
   command:
     description: 'Buildnote command to execute (report, collect, version)'
     required: false
-    default: "report"
+    default: "collect"
   params:
     description: 'Additional command parameters'
     required: false
