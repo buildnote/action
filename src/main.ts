@@ -30,7 +30,7 @@ const runAction = async (): Promise<void> => {
   const submitter = process.env.GITHUB_TRIGGERING_ACTOR
   const collectOnly = getBooleanInput("collectOnly")
   const command: string = getInput('command')
-  const params = getMultilineInput('params')
+  const args = getMultilineInput('args')
   const output = getInput('output', {required: false}) || process.env.GITHUB_STEP_SUMMARY || ''
 
   if (supportedCommands.indexOf(command) < 0) {
@@ -38,7 +38,7 @@ const runAction = async (): Promise<void> => {
     return
   }
 
-  const fileName = '.buildnote-cli-params';
+  const fileName = '.buildnote-cli-args';
   try {
     let options: string[]
 
@@ -91,7 +91,7 @@ const runAction = async (): Promise<void> => {
     }
 
 
-    const fullCommand = [command, ...options, ...params];
+    const fullCommand = [command, ...options, ...args];
 
     fs.writeFileSync(fileName, fullCommand.join(" ").trim());
 

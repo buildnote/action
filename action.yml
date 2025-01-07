@@ -13,8 +13,8 @@ inputs:
     description: 'Buildnote command to execute (report, collect, version)'
     required: false
     default: "collect"
-  params:
-    description: 'Additional command parameters'
+  args:
+    description: 'Additional command arguments'
     required: false
   output:
     description: 'Path for test report output file'
