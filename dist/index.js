@@ -11544,13 +11544,13 @@ const runAction = () => __awaiter(void 0, void 0, void 0, function* () {
     const submitter = process.env.GITHUB_TRIGGERING_ACTOR;
     const collectOnly = (0,main.getBooleanInput)("collectOnly");
     const command = (0,main.getInput)('command');
-    const params = (0,main.getMultilineInput)('params');
+    const args = (0,main.getMultilineInput)('args');
     const output = (0,main.getInput)('output', { required: false }) || process.env.GITHUB_STEP_SUMMARY || '';
     if (supportedCommands.indexOf(command) < 0) {
         core.error(`Invalid command '${command}'. Supported commands are [${supportedCommands.join(", ")}]`);
         return;
     }
-    const fileName = '.buildnote-cli-params';
+    const fileName = '.buildnote-cli-args';
     try {
         let options;
         switch (command) {
@@ -11596,7 +11596,7 @@ const runAction = () => __awaiter(void 0, void 0, void 0, function* () {
             default:
                 return;
         }
-        const fullCommand = [command, ...options, ...params];
+        const fullCommand = [command, ...options, ...args];
         external_fs_.writeFileSync(fileName, fullCommand.join(" ").trim());
         const buildnoteOutput = yield run(`@${fileName}`);
         core.info(buildnoteOutput.stdout);
