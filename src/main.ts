@@ -93,8 +93,10 @@ const runAction = async (): Promise<void> => {
 
     const fullCommand = [command, ...options, ...args];
 
-    fs.writeFileSync(fileName, fullCommand.join(" ").trim());
+    const fullCommandFileContent = fullCommand.join(" ").trim();
+    core.info(`Running buildnote ${fullCommandFileContent}`);
 
+    fs.writeFileSync(fileName, fullCommandFileContent);
     const buildnoteOutput = await buildnoteCli.run(`@${fileName}`);
 
     core.info(buildnoteOutput.stdout)
