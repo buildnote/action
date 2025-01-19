@@ -11597,7 +11597,9 @@ const runAction = () => __awaiter(void 0, void 0, void 0, function* () {
                 return;
         }
         const fullCommand = [command, ...options, ...args];
-        external_fs_.writeFileSync(fileName, fullCommand.join(" ").trim());
+        const fullCommandFileContent = fullCommand.join(" ").trim();
+        core.info(`Running buildnote ${fullCommandFileContent}`);
+        external_fs_.writeFileSync(fileName, fullCommandFileContent);
         const buildnoteOutput = yield run(`@${fileName}`);
         core.info(buildnoteOutput.stdout);
         core.error(buildnoteOutput.stderr);
