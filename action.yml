@@ -23,6 +23,10 @@ inputs:
     description: 'Collect events only without downloading the summary'
     required: false
     default: 'false'
+  verbose:
+    description: 'Runs buildnote CLI in verbose mode'
+    required: false
+    default: 'false'
   installOnly:
     description: 'Install buildnote without running command'
     required: false

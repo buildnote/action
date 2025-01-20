@@ -30,6 +30,7 @@ const runAction = async (): Promise<void> => {
   const submitter = process.env.GITHUB_TRIGGERING_ACTOR
   const collectOnly = getBooleanInput("collectOnly")
   const command: string = getInput('command')
+  const verbose: boolean = getBooleanInput('verbose', {required: false}) || false
   const args = getMultilineInput('args')
   const output = getInput('output', {required: false}) || process.env.GITHUB_STEP_SUMMARY || ''
 
@@ -91,7 +92,7 @@ const runAction = async (): Promise<void> => {
     }
 
 
-    const fullCommand = [command, ...options, ...args];
+    const fullCommand = (verbose ? ["--verbose"] : []).concat([command, ...options, ...args]);
 
     const fullCommandFileContent = fullCommand.join(" ").trim();
     core.info(`Running buildnote ${fullCommandFileContent}`);
