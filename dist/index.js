@@ -11544,6 +11544,7 @@ const runAction = () => __awaiter(void 0, void 0, void 0, function* () {
     const submitter = process.env.GITHUB_TRIGGERING_ACTOR;
     const collectOnly = (0,main.getBooleanInput)("collectOnly");
     const command = (0,main.getInput)('command');
+    const verbose = (0,main.getBooleanInput)('verbose', { required: false }) || false;
     const args = (0,main.getMultilineInput)('args');
     const output = (0,main.getInput)('output', { required: false }) || process.env.GITHUB_STEP_SUMMARY || '';
     if (supportedCommands.indexOf(command) < 0) {
@@ -11596,7 +11597,7 @@ const runAction = () => __awaiter(void 0, void 0, void 0, function* () {
             default:
                 return;
         }
-        const fullCommand = [command, ...options, ...args];
+        const fullCommand = (verbose ? ["--verbose"] : []).concat([command, ...options, ...args]);
         const fullCommandFileContent = fullCommand.join(" ").trim();
         core.info(`Running buildnote ${fullCommandFileContent}`);
         external_fs_.writeFileSync(fileName, fullCommandFileContent);
