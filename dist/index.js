@@ -11541,7 +11541,6 @@ const runAction = () => __awaiter(void 0, void 0, void 0, function* () {
     const build = `${process.env.GITHUB_RUN_ID}_${process.env.GITHUB_RUN_ATTEMPT}`;
     const sha = process.env.GITHUB_SHA;
     const ref = process.env.GITHUB_REF;
-    const submitter = process.env.GITHUB_TRIGGERING_ACTOR;
     const collectOnly = (0,main.getBooleanInput)("collectOnly");
     const command = (0,main.getInput)('command');
     const verbose = (0,main.getBooleanInput)('verbose', { required: false }) || false;
@@ -11561,7 +11560,6 @@ const runAction = () => __awaiter(void 0, void 0, void 0, function* () {
                     "--project=" + quote(project),
                     "--module=" + quote(module),
                     "--build=" + quote(build),
-                    "--submitter=" + quote(submitter),
                     "--sha=" + quote(sha),
                     "--ref=" + quote(ref),
                     "--collect-only=" + quote(collectOnly.toString()),
@@ -11574,7 +11572,6 @@ const runAction = () => __awaiter(void 0, void 0, void 0, function* () {
                     "--project=" + quote(project),
                     "--module=" + quote(module),
                     "--build=" + quote(build),
-                    "--submitter=" + quote(submitter),
                     "--sha=" + quote(sha),
                     "--ref=" + quote(ref),
                 ];
@@ -11585,7 +11582,6 @@ const runAction = () => __awaiter(void 0, void 0, void 0, function* () {
                     "--project=" + quote(project),
                     "--module=" + quote(module),
                     "--build=" + quote(build),
-                    "--submitter=" + quote(submitter),
                     "--sha=" + quote(sha),
                     "--ref=" + quote(ref),
                     "--output=" + quote(output)
