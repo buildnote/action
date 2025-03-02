@@ -2,7 +2,6 @@ import * as core from '@actions/core';
 import * as buildnoteCli from './libs/buildnote-cli';
 import {getBooleanInput, getInput, getMultilineInput} from "actions-parsers";
 import * as fs from "fs";
-import {moduleIdFrom, quote} from "./libs/utils";
 
 const main = async () => {
   runAction();
@@ -19,19 +18,9 @@ const runAction = async (): Promise<void> => {
   }
 
   if (installOnly) return;
-
-  const orgRepo = process.env.GITHUB_REPOSITORY.split("/")
-  const org = orgRepo[0]
-  const project = orgRepo[1]
-  const module = moduleIdFrom(process.env.GITHUB_WORKFLOW || '')
-  const build = `${process.env.GITHUB_RUN_ID}_${process.env.GITHUB_RUN_ATTEMPT}`
-  const sha = process.env.GITHUB_SHA
-  const ref = process.env.GITHUB_REF
-  const collectOnly = getBooleanInput("collectOnly")
   const command: string = getInput('command')
   const verbose: boolean = getBooleanInput('verbose', {required: false}) || false
   const args = getMultilineInput('args')
-  const output = getInput('output', {required: false}) || process.env.GITHUB_STEP_SUMMARY || ''
 
   if (supportedCommands.indexOf(command) < 0) {
     core.error(`Invalid command '${command}'. Supported commands are [${supportedCommands.join(", ")}]`)
@@ -44,39 +33,15 @@ const runAction = async (): Promise<void> => {
 
     switch (command) {
       case "submit":
-        options = [
-          "--org=" + quote(org),
-          "--project=" + quote(project),
-          "--module=" + quote(module),
-          "--build=" + quote(build),
-          "--sha=" + quote(sha),
-          "--ref=" + quote(ref),
-          "--collect-only=" + quote(collectOnly.toString()),
-          "--output=" + quote(output)
-        ]
+        options = []
         break;
 
       case "collect":
-        options = [
-          "--org=" + quote(org),
-          "--project=" + quote(project),
-          "--module=" + quote(module),
-          "--build=" + quote(build),
-          "--sha=" + quote(sha),
-          "--ref=" + quote(ref),
-        ]
+        options = []
         break;
 
       case "report":
-        options = [
-          "--org=" + quote(org),
-          "--project=" + quote(project),
-          "--module=" + quote(module),
-          "--build=" + quote(build),
-          "--sha=" + quote(sha),
-          "--ref=" + quote(ref),
-          "--output=" + quote(output)
-        ]
+        options = []
         break;
 
       case "version":
@@ -86,7 +51,6 @@ const runAction = async (): Promise<void> => {
       default:
         return
     }
-
 
     const fullCommand = (verbose ? ["--verbose"] : []).concat([command, ...options, ...args]);
 

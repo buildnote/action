@@ -16,13 +16,6 @@ inputs:
   args:
     description: 'Additional command arguments'
     required: false
-  output:
-    description: 'Path for test report output file'
-    required: false
-  collectOnly:
-    description: 'Collect events only without downloading the summary'
-    required: false
-    default: 'false'
   verbose:
     description: 'Runs buildnote CLI in verbose mode'
     required: false
