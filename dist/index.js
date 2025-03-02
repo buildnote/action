@@ -9933,7 +9933,7 @@ module.exports = new Type('tag:yaml.org,2002:timestamp', {
 /***/ 4351:
 /***/ ((module) => {
 
-/*! *****************************************************************************
+/******************************************************************************
 Copyright (c) Microsoft Corporation.
 
 Permission to use, copy, modify, and/or distribute this software for any
@@ -9971,6 +9971,7 @@ var __importStar;
 var __importDefault;
 var __classPrivateFieldGet;
 var __classPrivateFieldSet;
+var __classPrivateFieldIn;
 var __createBinding;
 (function (factory) {
     var root = typeof global === "object" ? global : typeof self === "object" ? self : typeof this === "object" ? this : {};
@@ -10087,7 +10088,11 @@ var __createBinding;
 
     __createBinding = Object.create ? (function(o, m, k, k2) {
         if (k2 === undefined) k2 = k;
-        Object.defineProperty(o, k2, { enumerable: true, get: function() { return m[k]; } });
+        var desc = Object.getOwnPropertyDescriptor(m, k);
+        if (!desc || ("get" in desc ? !m.__esModule : desc.writable || desc.configurable)) {
+            desc = { enumerable: true, get: function() { return m[k]; } };
+        }
+        Object.defineProperty(o, k2, desc);
     }) : (function(o, m, k, k2) {
         if (k2 === undefined) k2 = k;
         o[k2] = m[k];
@@ -10214,6 +10219,11 @@ var __createBinding;
         return (kind === "a" ? f.call(receiver, value) : f ? f.value = value : state.set(receiver, value)), value;
     };
 
+    __classPrivateFieldIn = function (state, receiver) {
+        if (receiver === null || (typeof receiver !== "object" && typeof receiver !== "function")) throw new TypeError("Cannot use 'in' operator on non-object");
+        return typeof state === "function" ? receiver === state : state.has(receiver);
+    };
+
     exporter("__extends", __extends);
     exporter("__assign", __assign);
     exporter("__rest", __rest);
@@ -10238,6 +10248,7 @@ var __createBinding;
     exporter("__importDefault", __importDefault);
     exporter("__classPrivateFieldGet", __classPrivateFieldGet);
     exporter("__classPrivateFieldSet", __classPrivateFieldSet);
+    exporter("__classPrivateFieldIn", __classPrivateFieldIn);
 });
 
 
@@ -11374,6 +11385,7 @@ const {
     __importDefault,
     __classPrivateFieldGet,
     __classPrivateFieldSet,
+    __classPrivateFieldIn,
 } = tslib;
 
 
@@ -11499,24 +11511,7 @@ function installCli(requiredVersion) {
 
 // EXTERNAL MODULE: ./node_modules/actions-parsers/dist/main.js
 var main = __nccwpck_require__(3295);
-;// CONCATENATED MODULE: ./src/libs/utils.ts
-function moduleIdFrom(input) {
-    const trimmedInput = input.trim();
-    if (trimmedInput == "")
-        return "-";
-    const githubFilePrefix = ".github/workflows/";
-    return !trimmedInput.startsWith(githubFilePrefix) ? trimmedInput : trimmedInput
-        .replace(githubFilePrefix, "")
-        .trim()
-        .replace(/\.yaml$/gi, "")
-        .replace(/\.yml$/gi, "");
-}
-function quote(value) {
-    return JSON.stringify(value);
-}
-
 ;// CONCATENATED MODULE: ./src/main.ts
-
 
 
 
@@ -11534,18 +11529,9 @@ const runAction = () => __awaiter(void 0, void 0, void 0, function* () {
     }
     if (installOnly)
         return;
-    const orgRepo = process.env.GITHUB_REPOSITORY.split("/");
-    const org = orgRepo[0];
-    const project = orgRepo[1];
-    const module = moduleIdFrom(process.env.GITHUB_WORKFLOW || '');
-    const build = `${process.env.GITHUB_RUN_ID}_${process.env.GITHUB_RUN_ATTEMPT}`;
-    const sha = process.env.GITHUB_SHA;
-    const ref = process.env.GITHUB_REF;
-    const collectOnly = (0,main.getBooleanInput)("collectOnly");
     const command = (0,main.getInput)('command');
     const verbose = (0,main.getBooleanInput)('verbose', { required: false }) || false;
     const args = (0,main.getMultilineInput)('args');
-    const output = (0,main.getInput)('output', { required: false }) || process.env.GITHUB_STEP_SUMMARY || '';
     if (supportedCommands.indexOf(command) < 0) {
         core.error(`Invalid command '${command}'. Supported commands are [${supportedCommands.join(", ")}]`);
         return;
@@ -11555,37 +11541,13 @@ const runAction = () => __awaiter(void 0, void 0, void 0, function* () {
         let options;
         switch (command) {
             case "submit":
-                options = [
-                    "--org=" + quote(org),
-                    "--project=" + quote(project),
-                    "--module=" + quote(module),
-                    "--build=" + quote(build),
-                    "--sha=" + quote(sha),
-                    "--ref=" + quote(ref),
-                    "--collect-only=" + quote(collectOnly.toString()),
-                    "--output=" + quote(output)
-                ];
+                options = [];
                 break;
             case "collect":
-                options = [
-                    "--org=" + quote(org),
-                    "--project=" + quote(project),
-                    "--module=" + quote(module),
-                    "--build=" + quote(build),
-                    "--sha=" + quote(sha),
-                    "--ref=" + quote(ref),
-                ];
+                options = [];
                 break;
             case "report":
-                options = [
-                    "--org=" + quote(org),
-                    "--project=" + quote(project),
-                    "--module=" + quote(module),
-                    "--build=" + quote(build),
-                    "--sha=" + quote(sha),
-                    "--ref=" + quote(ref),
-                    "--output=" + quote(output)
-                ];
+                options = [];
                 break;
             case "version":
                 options = [];
