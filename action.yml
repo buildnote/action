@@ -6,7 +6,7 @@ branding:
   color: 'purple'
 inputs:
   version:
-    description: 'Version of Buildnote cli to use'
+    description: 'Version of Buildnote CLI to use'
     required: false
     default: '0.0.13'
   command:
