@@ -78,10 +78,10 @@ jobs:
 ### Using with GitHub Token
 
 Buildnote preferred way of integration with GitHub is via custom app. In the rare cases where users may not have access
-create a custom GitHub app, Buildnote CLI provides a way to fetch and upload pipeline events directly.
+to create a custom GitHub app, Buildnote CLI provides a way to fetch and upload pipeline events directly.
 
 This example shows how to use the action in a workflow that also sends pipeline events directly (with use of GitHub
-personal access token):
+access token):
 
 ```yaml
 on:
