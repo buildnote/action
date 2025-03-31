@@ -123,7 +123,7 @@ Make sure that `buildnote.json` file is configured to collect GitHub action even
 
 | Input         | Description                               | Required | Default |
 |---------------|-------------------------------------------|----------|---------|
-| `version`     | Version of Buildnote CLI to use           | No       | 0.0.13  |
+| `version`     | Version of Buildnote CLI to use           | No       | 0.0.14  |
 | `command`     | Buildnote CLI command to execute          | No       | collect |
 | `args`        | Additional command arguments              | No       |         |
 | `verbose`     | Runs Buildnote CLI in verbose mode        | No       | false   |
