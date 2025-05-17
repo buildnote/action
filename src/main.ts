@@ -8,7 +8,7 @@ const main = async () => {
 };
 
 const runAction = async (): Promise<void> => {
-  const supportedCommands = ["collect", "report", "submit", "version"]
+  const supportedCommands = ["collect", "submit", "version"]
 
   await buildnoteCli.installCli(getInput('version'))
   const installOnly = getBooleanInput("installOnly")
@@ -37,10 +37,6 @@ const runAction = async (): Promise<void> => {
         break;
 
       case "collect":
-        options = []
-        break;
-
-      case "report":
         options = []
         break;
 

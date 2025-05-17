@@ -10,7 +10,7 @@ inputs:
     required: false
     default: '0.0.15'
   command:
-    description: 'Buildnote command to execute (report, collect, version)'
+    description: 'Buildnote command to execute'
     required: false
     default: "collect"
   args:
