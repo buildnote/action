@@ -11521,7 +11521,7 @@ const main_main = () => __awaiter(void 0, void 0, void 0, function* () {
     runAction();
 });
 const runAction = () => __awaiter(void 0, void 0, void 0, function* () {
-    const supportedCommands = ["collect", "submit", "version"];
+    const supportedCommands = ["collect", "submit", "report", "version"];
     yield installCli((0,main.getInput)('version'));
     const installOnly = (0,main.getBooleanInput)("installOnly");
     if (installOnly) {
@@ -11544,6 +11544,9 @@ const runAction = () => __awaiter(void 0, void 0, void 0, function* () {
                 options = [];
                 break;
             case "collect":
+                options = [];
+                break;
+            case "report":
                 options = [];
                 break;
             case "version":
