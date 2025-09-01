@@ -35,10 +35,10 @@ export function getPlatform(): string | undefined {
 
 export async function installCli(requiredVersion: string): Promise<void> {
   const downloads = {
-    'linux-x64': `https://get.buildnote.io/releases/cli/buildnote-${requiredVersion}-linux-x64`,
-    'darwin-x64': `https://get.buildnote.io/releases/cli/buildnote-${requiredVersion}-darwin-x64`,
-    'darwin-arm64': `https://get.buildnote.io/releases/cli/buildnote-${requiredVersion}-darwin-arm64`,
-    'windows-x64': `https://get.buildnote.io/releases/cli/buildnote-${requiredVersion}-windows-x64.exe`,
+    'linux-x64': `https://github.com/buildnote/releases/releases/download/buildnote-cli-${requiredVersion}/buildnote-${requiredVersion}-linux-x64`,
+    'darwin-x64': `https://github.com/buildnote/releases/releases/download/buildnote-cli-${requiredVersion}/buildnote-${requiredVersion}-darwin-x64`,
+    'darwin-arm64': `https://github.com/buildnote/releases/releases/download/buildnote-cli-${requiredVersion}/buildnote-${requiredVersion}-darwin-arm64`,
+    'windows-x64': `https://github.com/buildnote/releases/releases/download/buildnote-cli-${requiredVersion}/buildnote-${requiredVersion}-windows-x64.exe`,
   };
 
   const platform = getPlatform();
@@ -97,7 +97,7 @@ export async function installCli(requiredVersion: string): Promise<void> {
   const installedVersion = (await exec.exec(`buildnote`, ['version'], true)).stdout.trim();
   core.debug(`Running buildnote version is: ${installedVersion}`)
 
-  if (requiredVersion != installedVersion) {
+  if (requiredVersion != installedVersion && requiredVersion != 'latest') {
     throw new Error(`Installed version "${installedVersion}" did not match required "${requiredVersion}"`);
   }
 }
