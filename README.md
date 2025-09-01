@@ -7,7 +7,7 @@ This action enables integration between your GitHub workflows and Buildnote.
 
 ## What does this action do?
 
-The Buildnote GitHub Action provides a wrapper around the [Buildnote CLI](https://buildnote.io/docs/cli/), allowing you
+The Buildnote GitHub Action provides a wrapper around the [Buildnote CLI](https://docs.buildnote.io/reference/cli/download/), allowing you
 to:
 
 - Collect test results in various formats
@@ -140,7 +140,7 @@ Make sure that `buildnote.json` file is configured to collect GitHub action even
 ## GitHub integration in details
 
 For detailed GitHub configuration please refer to
-our [documentation page](https://buildnote.io/docs/integrations/github/).
+our [documentation page](https://docs.buildnote.io/guide/integrations/github/).
 
 ## License
 
