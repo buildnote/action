@@ -11453,13 +11453,36 @@ function getPlatform() {
     const runnerArch = external_os_.arch();
     return platforms[`${runnerPlatform}-${runnerArch}`];
 }
+function getLatestVersion() {
+    return __awaiter(this, void 0, void 0, function* () {
+        const latestVersionUrl = 'https://github.com/buildnote/releases/releases/download/buildnote-cli-latest/latest_version';
+        try {
+            const response = yield fetch(latestVersionUrl);
+            if (!response.ok) {
+                throw new Error(`Failed to fetch latest version: ${response.status}`);
+            }
+            const version = yield response.text();
+            return version.trim();
+        }
+        catch (error) {
+            core.debug(`Failed to get latest version from GitHub: ${error}`);
+            throw new Error(`Could not determine latest version of Buildnote from ${latestVersionUrl}. Check your internet connection.`);
+        }
+    });
+}
 function installCli(requiredVersion) {
     return __awaiter(this, void 0, void 0, function* () {
+        // Resolve "latest" to actual version number
+        let resolvedVersion = requiredVersion;
+        if (requiredVersion === 'latest') {
+            resolvedVersion = yield getLatestVersion();
+            core.info(`Resolved latest version to: ${resolvedVersion}`);
+        }
         const downloads = {
-            'linux-x64': `https://github.com/buildnote/releases/releases/download/buildnote-cli-${requiredVersion}/buildnote-${requiredVersion}-linux-x64`,
-            'darwin-x64': `https://github.com/buildnote/releases/releases/download/buildnote-cli-${requiredVersion}/buildnote-${requiredVersion}-darwin-x64`,
-            'darwin-arm64': `https://github.com/buildnote/releases/releases/download/buildnote-cli-${requiredVersion}/buildnote-${requiredVersion}-darwin-arm64`,
-            'windows-x64': `https://github.com/buildnote/releases/releases/download/buildnote-cli-${requiredVersion}/buildnote-${requiredVersion}-windows-x64.exe`,
+            'linux-x64': `https://github.com/buildnote/releases/releases/download/buildnote-cli-${resolvedVersion}/buildnote-${resolvedVersion}-linux-x64`,
+            'darwin-x64': `https://github.com/buildnote/releases/releases/download/buildnote-cli-${resolvedVersion}/buildnote-${resolvedVersion}-darwin-x64`,
+            'darwin-arm64': `https://github.com/buildnote/releases/releases/download/buildnote-cli-${resolvedVersion}/buildnote-${resolvedVersion}-darwin-arm64`,
+            'windows-x64': `https://github.com/buildnote/releases/releases/download/buildnote-cli-${resolvedVersion}/buildnote-${resolvedVersion}-windows-x64.exe`,
         };
         const platform = getPlatform();
         core.debug(`Platform ${platform}`);
@@ -11470,15 +11493,15 @@ function installCli(requiredVersion) {
         let currentVersion = undefined;
         if (isInstalled) {
             currentVersion = yield getVersion();
-            if (currentVersion == requiredVersion) {
+            if (currentVersion == resolvedVersion) {
                 core.info(`Buildnote version ${currentVersion} is already installed on this machine. Skipping download`);
             }
             else {
-                core.info(`Buildnote ${currentVersion} does not satisfy the desired version ${requiredVersion}. Proceeding to download`);
+                core.info(`Buildnote ${currentVersion} does not satisfy the desired version ${resolvedVersion}. Proceeding to download`);
             }
         }
         const destination = external_path_.join(external_os_.homedir(), '.buildnote');
-        if (currentVersion != requiredVersion) {
+        if (currentVersion != resolvedVersion) {
             core.info(`Install destination is ${destination}`);
             yield io.rmRF(external_path_.join(destination, 'bin'))
                 .catch()
@@ -11499,12 +11522,12 @@ function installCli(requiredVersion) {
                 }
             });
         }
-        const cachedPath = yield tool_cache.cacheDir(external_path_.join(destination, 'bin'), 'buildnote', requiredVersion);
+        const cachedPath = yield tool_cache.cacheDir(external_path_.join(destination, 'bin'), 'buildnote', resolvedVersion);
         core.addPath(cachedPath);
         const installedVersion = (yield exec_exec(`buildnote`, ['version'], true)).stdout.trim();
         core.debug(`Running buildnote version is: ${installedVersion}`);
-        if (requiredVersion != installedVersion && requiredVersion != 'latest') {
-            throw new Error(`Installed version "${installedVersion}" did not match required "${requiredVersion}"`);
+        if (resolvedVersion != installedVersion) {
+            throw new Error(`Installed version "${installedVersion}" did not match required "${resolvedVersion}"`);
         }
     });
 }
