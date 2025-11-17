@@ -33,12 +33,35 @@ export function getPlatform(): string | undefined {
   return platforms[`${runnerPlatform}-${runnerArch}`];
 }
 
+export async function getLatestVersion(): Promise<string> {
+  const latestVersionUrl = 'https://github.com/buildnote/releases/releases/download/buildnote-cli-latest/latest_version';
+
+  try {
+    const response = await fetch(latestVersionUrl);
+    if (!response.ok) {
+      throw new Error(`Failed to fetch latest version: ${response.status}`);
+    }
+    const version = await response.text();
+    return version.trim();
+  } catch (error) {
+    core.debug(`Failed to get latest version from GitHub: ${error}`);
+    throw new Error(`Could not determine latest version of Buildnote from ${latestVersionUrl}. Check your internet connection.`);
+  }
+}
+
 export async function installCli(requiredVersion: string): Promise<void> {
+  // Resolve "latest" to actual version number
+  let resolvedVersion = requiredVersion;
+  if (requiredVersion === 'latest') {
+    resolvedVersion = await getLatestVersion();
+    core.info(`Resolved latest version to: ${resolvedVersion}`);
+  }
+
   const downloads = {
-    'linux-x64': `https://github.com/buildnote/releases/releases/download/buildnote-cli-${requiredVersion}/buildnote-${requiredVersion}-linux-x64`,
-    'darwin-x64': `https://github.com/buildnote/releases/releases/download/buildnote-cli-${requiredVersion}/buildnote-${requiredVersion}-darwin-x64`,
-    'darwin-arm64': `https://github.com/buildnote/releases/releases/download/buildnote-cli-${requiredVersion}/buildnote-${requiredVersion}-darwin-arm64`,
-    'windows-x64': `https://github.com/buildnote/releases/releases/download/buildnote-cli-${requiredVersion}/buildnote-${requiredVersion}-windows-x64.exe`,
+    'linux-x64': `https://github.com/buildnote/releases/releases/download/buildnote-cli-${resolvedVersion}/buildnote-${resolvedVersion}-linux-x64`,
+    'darwin-x64': `https://github.com/buildnote/releases/releases/download/buildnote-cli-${resolvedVersion}/buildnote-${resolvedVersion}-darwin-x64`,
+    'darwin-arm64': `https://github.com/buildnote/releases/releases/download/buildnote-cli-${resolvedVersion}/buildnote-${resolvedVersion}-darwin-arm64`,
+    'windows-x64': `https://github.com/buildnote/releases/releases/download/buildnote-cli-${resolvedVersion}/buildnote-${resolvedVersion}-windows-x64.exe`,
   };
 
   const platform = getPlatform();
@@ -55,16 +78,16 @@ export async function installCli(requiredVersion: string): Promise<void> {
 
   if (isInstalled) {
     currentVersion = await getVersion()
-    if (currentVersion == requiredVersion) {
+    if (currentVersion == resolvedVersion) {
       core.info(`Buildnote version ${currentVersion} is already installed on this machine. Skipping download`);
     } else {
-      core.info(`Buildnote ${currentVersion} does not satisfy the desired version ${requiredVersion}. Proceeding to download`);
+      core.info(`Buildnote ${currentVersion} does not satisfy the desired version ${resolvedVersion}. Proceeding to download`);
     }
   }
 
   const destination = path.join(os.homedir(), '.buildnote');
 
-  if (currentVersion != requiredVersion) {
+  if (currentVersion != resolvedVersion) {
     core.info(`Install destination is ${destination}`);
 
     await io
@@ -91,13 +114,13 @@ export async function installCli(requiredVersion: string): Promise<void> {
     })
   }
 
-  const cachedPath = await tc.cacheDir(path.join(destination, 'bin'), 'buildnote', requiredVersion)
+  const cachedPath = await tc.cacheDir(path.join(destination, 'bin'), 'buildnote', resolvedVersion)
   core.addPath(cachedPath)
 
   const installedVersion = (await exec.exec(`buildnote`, ['version'], true)).stdout.trim();
   core.debug(`Running buildnote version is: ${installedVersion}`)
 
-  if (requiredVersion != installedVersion && requiredVersion != 'latest') {
-    throw new Error(`Installed version "${installedVersion}" did not match required "${requiredVersion}"`);
+  if (resolvedVersion != installedVersion) {
+    throw new Error(`Installed version "${installedVersion}" did not match required "${resolvedVersion}"`);
   }
 }
