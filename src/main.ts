@@ -89,14 +89,13 @@ const runMonitorAround = async (args: string[], verbose: boolean): Promise<void>
 // Attaching runs the monitor detached so it outlives this step and records the
 // steps that follow; the post step stops it and it submits on the way out.
 const attachMonitor = async (args: string[], verbose: boolean): Promise<void> => {
-  const target = process.ppid;
   const logFile = path.join(process.env.RUNNER_TEMP || os.tmpdir(), 'buildnote', 'monitor.log');
 
+  // No `--pid` is passed: the monitor resolves the runner process to attach to
+  // itself. An explicit `--pid` in the step's args still goes through verbatim.
   const argv = (verbose ? ["--verbose"] : []).concat(["monitor", ...args]);
-  if (!args.some((arg) => arg.startsWith('--pid'))) argv.push('--pid', String(target));
 
-  core.info(`Attaching buildnote monitor to process ${target} and everything it starts`);
-  core.debug(`Process ${target} is ${monitor.cmdlineOf(target)}`);
+  core.info('Attaching buildnote monitor to the runner process and everything it starts');
 
   monitor.relaxPtraceScope();
 
@@ -113,7 +112,7 @@ const attachMonitor = async (args: string[], verbose: boolean): Promise<void> =>
     const tail = monitor.logTail(logFile);
     // Monitoring is not a gate, so a runner that will not allow the attach
     // gets a loud annotation rather than a failed job.
-    core.error(`Buildnote monitor exited before it attached to process ${target}; this job is not being traced.${tail ? `\n${tail}` : ''}`);
+    core.error(`Buildnote monitor exited before it attached to the runner process; this job is not being traced.${tail ? `\n${tail}` : ''}`);
     return;
   }
 
