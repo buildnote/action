@@ -113,11 +113,11 @@ const attachMonitor = async (args: string[], verbose: boolean): Promise<void> =>
     const tail = monitor.logTail(logFile);
     // Monitoring is not a gate, so a runner that will not allow the attach
     // gets a loud annotation rather than a failed job.
-    core.error(`buildnote monitor exited before it attached to process ${target}; this job is not being traced.${tail ? `\n${tail}` : ''}`);
+    core.error(`Buildnote monitor exited before it attached to process ${target}; this job is not being traced.${tail ? `\n${tail}` : ''}`);
     return;
   }
 
-  core.info(`buildnote monitor is running as pid ${pid}`);
+  core.info(`Buildnote monitor is running as pid ${pid}`);
 };
 
 const runPost = async (): Promise<void> => {
@@ -127,7 +127,7 @@ const runPost = async (): Promise<void> => {
   const logFile = core.getState(STATE_MONITOR_LOG);
 
   if (!monitor.isAlive(pid)) {
-    core.warning(`buildnote monitor (pid ${pid}) is no longer running; part of this job was not traced.`);
+    core.warning(`Buildnote monitor (pid ${pid}) is no longer running; part of this job was not traced.`);
   } else {
     core.info(`Stopping buildnote monitor (pid ${pid}) and submitting the recorded commands`);
     if (!(await monitor.stopMonitor(pid))) {
