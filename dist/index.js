@@ -39406,7 +39406,7 @@ function installCli(requiredVersion) {
         const isInstalled = yield io.which('buildnote');
         let currentVersion = undefined;
         if (isDev) {
-            core.info(`Buildnote ${DEV_VERSION} is a moving version. Reinstalling it`);
+            core.info(`Buildnote ${DEV_VERSION} is a moving version. Downloading it`);
         }
         else if (isInstalled) {
             currentVersion = yield getVersion();
