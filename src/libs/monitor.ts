@@ -9,6 +9,7 @@ export const PTRACE_SCOPE_PATH = '/proc/sys/kernel/yama/ptrace_scope';
 const READY_POLL_MS = 100;
 const READY_TIMEOUT_MS = 5_000;
 const STOP_POLL_MS = 200;
+const INTERRUPT_TIMEOUT_MS = 10_000;
 const STOP_TIMEOUT_MS = 60_000;
 // GitHub truncates annotations around 4KB; keep the log excerpt below that.
 const LOG_TAIL_CHARS = 3_500;
@@ -148,32 +149,46 @@ export async function waitUntilAttached(
 }
 
 /**
- * Stop the monitor and let it submit. SIGTERM goes to the monitor alone -
- * signalling the process group would hit every traced descendant too - and the
- * wait matters because the recorded commands are uploaded from a JVM shutdown
- * hook. A SIGKILLed monitor submits nothing at all.
+ * Signal the monitor. Returns false once it is gone, which is the only reason
+ * kill throws here.
  */
-export async function stopMonitor(
-  pid: number,
-  timeoutMs: number = STOP_TIMEOUT_MS,
-): Promise<boolean> {
+function signal(pid: number, sig: NodeJS.Signals): boolean {
   try {
-    process.kill(pid, 'SIGTERM');
-  } catch {
+    process.kill(pid, sig);
     return true;
+  } catch {
+    return false;
   }
+}
 
+async function waitForExit(pid: number, timeoutMs: number): Promise<boolean> {
   const deadline = Date.now() + timeoutMs;
   while (Date.now() < deadline) {
     if (!isAlive(pid)) return true;
     await wait(STOP_POLL_MS);
   }
+  return !isAlive(pid);
+}
 
-  try {
-    process.kill(pid, 'SIGKILL');
-  } catch {
-    // already gone
-  }
+/**
+ * Stop the monitor and let it submit: SIGINT first, then SIGTERM once the
+ * interrupt window passes, then SIGKILL. Every signal goes to the monitor
+ * alone - signalling the process group would hit every traced descendant too -
+ * and the waits matter because the recorded commands are uploaded from a JVM
+ * shutdown hook. A SIGKILLed monitor submits nothing at all.
+ */
+export async function stopMonitor(
+  pid: number,
+  timeoutMs: number = STOP_TIMEOUT_MS,
+  interruptTimeoutMs: number = INTERRUPT_TIMEOUT_MS,
+): Promise<boolean> {
+  if (!signal(pid, 'SIGINT')) return true;
+  if (await waitForExit(pid, interruptTimeoutMs)) return true;
+
+  if (!signal(pid, 'SIGTERM')) return true;
+  if (await waitForExit(pid, timeoutMs)) return true;
+
+  signal(pid, 'SIGKILL');
   return false;
 }
 

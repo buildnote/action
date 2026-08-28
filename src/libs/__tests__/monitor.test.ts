@@ -76,6 +76,18 @@ describe('monitor.ts', () => {
       expect(isAlive(child.pid)).toBe(false);
     });
 
+    it('should escalate to SIGTERM when the monitor ignores SIGINT', async () => {
+      const child = spawn(
+        'node',
+        ['-e', 'process.on("SIGINT", () => {}); setInterval(() => {}, 1000)'],
+        { detached: true, stdio: 'ignore' },
+      );
+      child.unref();
+
+      expect(await stopMonitor(child.pid, 10000, 200)).toBe(true);
+      expect(isAlive(child.pid)).toBe(false);
+    });
+
     it('should be a no-op when the monitor is already gone', async () => {
       expect(await stopMonitor(DEAD_PID, 10000)).toBe(true);
     });

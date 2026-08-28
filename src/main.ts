@@ -131,7 +131,7 @@ const runPost = async (): Promise<void> => {
   } else {
     core.info(`Stopping buildnote monitor (pid ${pid}) and submitting the recorded commands`);
     if (!(await monitor.stopMonitor(pid))) {
-      core.warning(`buildnote monitor (pid ${pid}) did not exit after SIGTERM and had to be killed, so nothing was submitted.`);
+      core.warning(`Buildnote monitor (pid ${pid}) did not exit after SIGINT and SIGTERM and had to be killed, so nothing was submitted.`);
     }
   }
 
