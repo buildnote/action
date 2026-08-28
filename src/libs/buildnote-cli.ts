@@ -10,8 +10,6 @@ export async function run(...args: string[]): Promise<exec.ExecResult> {
   return exec.exec(`buildnote`, args, true);
 }
 
-// Streams the output as it is produced, for commands that wrap a build of the
-// user's own and would otherwise print nothing until it finished.
 export async function runStreaming(...args: string[]): Promise<exec.ExecResult> {
   return exec.exec(`buildnote`, args, false);
 }
@@ -55,6 +53,8 @@ export async function getLatestVersion(): Promise<string> {
   }
 }
 
+const DEV_VERSION = 'dev';
+
 export async function installCli(requiredVersion: string): Promise<void> {
   // Resolve "latest" to actual version number
   let resolvedVersion = requiredVersion;
@@ -79,10 +79,13 @@ export async function installCli(requiredVersion: string): Promise<void> {
     );
   }
 
+  const isDev = resolvedVersion === DEV_VERSION;
   const isInstalled = await io.which('buildnote');
   let currentVersion = undefined;
 
-  if (isInstalled) {
+  if (isDev) {
+    core.info(`Buildnote ${DEV_VERSION} is a moving version. Reinstalling it`);
+  } else if (isInstalled) {
     currentVersion = await getVersion()
     if (currentVersion == resolvedVersion) {
       core.info(`Buildnote version ${currentVersion} is already installed on this machine. Skipping download`);
@@ -111,13 +114,8 @@ export async function installCli(requiredVersion: string): Promise<void> {
 
     await io.cp(downloaded, path.join(destination, 'bin', "buildnote"))
 
-    fs.chmod(path.join(destination, 'bin', "buildnote"), 0o744, (error) => {
-      if (error) {
-        throw error
-      } else {
-        core.debug('Permissions updated successfully');
-      }
-    })
+    fs.chmodSync(path.join(destination, 'bin', "buildnote"), 0o744);
+    core.debug('Permissions updated successfully');
   }
 
   const cachedPath = await tc.cacheDir(path.join(destination, 'bin'), 'buildnote', resolvedVersion)

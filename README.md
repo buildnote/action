@@ -206,6 +206,9 @@ Make sure that `buildnote.json` file is configured to collect GitHub action even
 
 Supported `command` values are `collect`, `guardrails`, `monitor`, `report`, `submit` and `version`.
 
+`version` takes a release number, `latest`, or `dev`. `dev` tracks the newest development build and is
+downloaded again on every run, since the build behind it changes while still calling itself `dev`.
+
 ### Environment variables
 
 | Variable                    | Description                                             | Required |
