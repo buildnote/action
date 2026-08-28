@@ -27,3 +27,7 @@ inputs:
 runs:
   using: 'node20'
   main: 'dist/index.js'
+  # Stops an attached `monitor` and lets it submit. A no-op for every other
+  # command. `always()` because a failing job is the one worth tracing.
+  post: 'dist/index.js'
+  post-if: 'always()'

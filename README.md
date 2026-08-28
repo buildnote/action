@@ -12,6 +12,8 @@ to:
 
 - Collect test results in various formats
 - Collect files from the file system
+- Run guardrails and gate the build on their verdicts
+- Monitor a job and record every command it runs
 - Track command execution statistics
 - Gather build tool performance data
 - Record pipeline builds, stages, and steps (but GitHub App integration is preferred method)
@@ -75,6 +77,79 @@ jobs:
           buildnote collect
 ```
 
+### Guardrails
+
+Run the guardrails configured in `buildnote.json`, or the ones a policy file declares:
+
+```yaml
+      - name: Run guardrails
+        uses: buildnote/action@main
+        with:
+          command: guardrails
+          args: |
+            --policy=guardrails/backend.json
+        env:
+          BUILDNOTE_API_KEY: ${{ secrets.BUILDNOTE_API_KEY }}
+          BUILDNOTE_GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+```
+
+Guardrails gate the build: a failing verdict exits non-zero and fails the step. Use `--fail-on=warning`
+or `--fail-on=never` to change what counts as a failure, and `--dry-run` to print the verdicts without
+submitting or failing anything.
+
+### Monitoring a job
+
+`command: monitor` records every command a build runs, and their exit codes, without any change to the
+build itself. It has two modes.
+
+**Around a command.** Pass a `--` separator followed by the command and the monitor wraps it, tracing it
+and everything it starts. This needs no privileges and works on any runner:
+
+```yaml
+      - name: Build under the monitor
+        uses: buildnote/action@main
+        with:
+          command: monitor
+          args: |
+            -- ./gradlew build
+        env:
+          BUILDNOTE_API_KEY: ${{ secrets.BUILDNOTE_API_KEY }}
+          BUILDNOTE_GITHUB_JOB_NAME: build
+```
+
+The step exits with the wrapped command's own exit code, so a failing build still fails the job.
+
+**Attached to the job.** With no `--`, the monitor attaches to the runner process and records every
+step that follows. The action starts it in the background and stops it in its post step, which is when
+the recorded commands are submitted:
+
+```yaml
+      - name: Start the monitor
+        uses: buildnote/action@main
+        with:
+          command: monitor
+        env:
+          BUILDNOTE_API_KEY: ${{ secrets.BUILDNOTE_API_KEY }}
+          BUILDNOTE_GITHUB_JOB_NAME: build
+
+      - run: ./gradlew build
+      - run: ./gradlew test
+```
+
+Attaching upwards uses `ptrace`, and Linux runners restrict it: the action lowers
+`/proc/sys/kernel/yama/ptrace_scope` to `0` for you, writing it directly or through passwordless `sudo`.
+GitHub-hosted Ubuntu runners allow this. Where it is not allowed - a container without `SYS_PTRACE`, a
+self-hosted runner without passwordless `sudo`, macOS - the attach fails, the step reports why and the
+job carries on untraced. Use the wrapping mode there instead.
+
+Three things to know about the attached mode:
+
+- The monitor inherits its environment when it starts, so `BUILDNOTE_API_KEY` and
+  `BUILDNOTE_GITHUB_JOB_NAME` must be set on the monitor step itself, not on a later one.
+- Run one monitor step per job. A process can have only one tracer, so a second attach fails.
+- Events are submitted when the monitor is stopped in the post step. A runner that is torn down with
+  `SIGKILL` submits nothing.
+
 ### Using with GitHub Token
 
 Buildnote preferred way of integration with GitHub is via custom app. In the rare cases where users may not have access
@@ -128,6 +203,8 @@ Make sure that `buildnote.json` file is configured to collect GitHub action even
 | `args`        | Additional command arguments              | No       |         |
 | `verbose`     | Runs Buildnote CLI in verbose mode        | No       | false   |
 | `installOnly` | Install Buildnote without running command | No       | false   |
+
+Supported `command` values are `collect`, `guardrails`, `monitor`, `report`, `submit` and `version`.
 
 ### Environment variables
 

@@ -2,6 +2,7 @@ import * as aexec from '@actions/exec';
 
 export interface ExecResult {
   success: boolean;
+  exitCode: number;
   stdout: string;
   stderr: string;
 }
@@ -18,6 +19,7 @@ export const exec = async (
 
   return {
     success: exitCode === 0,
+    exitCode,
     stdout: stdout.trim(),
     stderr: stderr.trim(),
   };

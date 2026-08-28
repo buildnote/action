@@ -10,6 +10,12 @@ export async function run(...args: string[]): Promise<exec.ExecResult> {
   return exec.exec(`buildnote`, args, true);
 }
 
+// Streams the output as it is produced, for commands that wrap a build of the
+// user's own and would otherwise print nothing until it finished.
+export async function runStreaming(...args: string[]): Promise<exec.ExecResult> {
+  return exec.exec(`buildnote`, args, false);
+}
+
 export async function getVersion(): Promise<string | undefined> {
   const res = await exec.exec('buildnote', ['version']);
   if (res.success)

@@ -9933,7 +9933,7 @@ module.exports = new Type('tag:yaml.org,2002:timestamp', {
 /***/ 4351:
 /***/ ((module) => {
 
-/******************************************************************************
+/*! *****************************************************************************
 Copyright (c) Microsoft Corporation.
 
 Permission to use, copy, modify, and/or distribute this software for any
@@ -9971,7 +9971,6 @@ var __importStar;
 var __importDefault;
 var __classPrivateFieldGet;
 var __classPrivateFieldSet;
-var __classPrivateFieldIn;
 var __createBinding;
 (function (factory) {
     var root = typeof global === "object" ? global : typeof self === "object" ? self : typeof this === "object" ? this : {};
@@ -10088,11 +10087,7 @@ var __createBinding;
 
     __createBinding = Object.create ? (function(o, m, k, k2) {
         if (k2 === undefined) k2 = k;
-        var desc = Object.getOwnPropertyDescriptor(m, k);
-        if (!desc || ("get" in desc ? !m.__esModule : desc.writable || desc.configurable)) {
-            desc = { enumerable: true, get: function() { return m[k]; } };
-        }
-        Object.defineProperty(o, k2, desc);
+        Object.defineProperty(o, k2, { enumerable: true, get: function() { return m[k]; } });
     }) : (function(o, m, k, k2) {
         if (k2 === undefined) k2 = k;
         o[k2] = m[k];
@@ -10219,11 +10214,6 @@ var __createBinding;
         return (kind === "a" ? f.call(receiver, value) : f ? f.value = value : state.set(receiver, value)), value;
     };
 
-    __classPrivateFieldIn = function (state, receiver) {
-        if (receiver === null || (typeof receiver !== "object" && typeof receiver !== "function")) throw new TypeError("Cannot use 'in' operator on non-object");
-        return typeof state === "function" ? receiver === state : state.has(receiver);
-    };
-
     exporter("__extends", __extends);
     exporter("__assign", __assign);
     exporter("__rest", __rest);
@@ -10248,7 +10238,6 @@ var __createBinding;
     exporter("__importDefault", __importDefault);
     exporter("__classPrivateFieldGet", __classPrivateFieldGet);
     exporter("__classPrivateFieldSet", __classPrivateFieldSet);
-    exporter("__classPrivateFieldIn", __classPrivateFieldIn);
 });
 
 
@@ -11385,7 +11374,6 @@ const {
     __importDefault,
     __classPrivateFieldGet,
     __classPrivateFieldSet,
-    __classPrivateFieldIn,
 } = tslib;
 
 
@@ -11409,6 +11397,7 @@ const exec_exec = (command, args = [], silent) => __awaiter(void 0, void 0, void
     });
     return {
         success: exitCode === 0,
+        exitCode,
         stdout: stdout.trim(),
         stderr: stderr.trim(),
     };
@@ -11430,6 +11419,13 @@ var external_fs_ = __nccwpck_require__(7147);
 function run(...args) {
     return __awaiter(this, void 0, void 0, function* () {
         return exec_exec(`buildnote`, args, true);
+    });
+}
+// Streams the output as it is produced, for commands that wrap a build of the
+// user's own and would otherwise print nothing until it finished.
+function runStreaming(...args) {
+    return __awaiter(this, void 0, void 0, function* () {
+        return exec_exec(`buildnote`, args, false);
     });
 }
 function getVersion() {
@@ -11532,6 +11528,230 @@ function installCli(requiredVersion) {
     });
 }
 
+// EXTERNAL MODULE: external "child_process"
+var external_child_process_ = __nccwpck_require__(2081);
+;// CONCATENATED MODULE: ./src/libs/monitor.ts
+
+
+
+
+
+
+const PTRACE_SCOPE_PATH = '/proc/sys/kernel/yama/ptrace_scope';
+const READY_POLL_MS = 100;
+const READY_TIMEOUT_MS = 5000;
+const STOP_POLL_MS = 200;
+const STOP_TIMEOUT_MS = 60000;
+// GitHub truncates annotations around 4KB; keep the log excerpt below that.
+const LOG_TAIL_CHARS = 3500;
+const wait = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
+function readPtraceScope() {
+    try {
+        const scope = parseInt(external_fs_.readFileSync(PTRACE_SCOPE_PATH, 'utf8').trim(), 10);
+        return isNaN(scope) ? undefined : scope;
+    }
+    catch (_a) {
+        return undefined;
+    }
+}
+function writeScopeDirectly() {
+    external_fs_.writeFileSync(PTRACE_SCOPE_PATH, '0');
+}
+function writeScopeWithSudo() {
+    // -n so a runner without passwordless sudo fails immediately instead of
+    // blocking on a password prompt nobody can answer.
+    (0,external_child_process_.execFileSync)('sudo', ['-n', 'sh', '-c', `echo 0 > ${PTRACE_SCOPE_PATH}`], {
+        stdio: 'ignore',
+    });
+}
+/**
+ * Lower Yama's ptrace scope so the monitor can attach upwards to the runner
+ * process. Yama is 1 on Ubuntu and on GitHub-hosted runners, which only allows
+ * tracing your own descendants. Never fatal: the caller reports the attach
+ * failure that follows, with the monitor's own diagnosis of why.
+ */
+function relaxPtraceScope() {
+    if (external_os_.platform() !== 'linux') {
+        core.warning(`Attaching to the runner process is only unprivileged on Linux. On ${external_os_.platform()} the monitor needs elevated privileges to attach to a process it did not start.`);
+        return false;
+    }
+    const before = readPtraceScope();
+    if (before === undefined) {
+        core.debug(`${PTRACE_SCOPE_PATH} is absent; Yama is not restricting ptrace`);
+        return true;
+    }
+    if (before === 0) {
+        core.debug(`${PTRACE_SCOPE_PATH} is already 0`);
+        return true;
+    }
+    core.info(`${PTRACE_SCOPE_PATH} is ${before}; lowering it to 0 so buildnote monitor can attach to the runner process`);
+    for (const write of [writeScopeDirectly, writeScopeWithSudo]) {
+        try {
+            write();
+        }
+        catch (err) {
+            core.debug(`${write.name} failed: ${err}`);
+        }
+        // A write that is refused by a sandbox can still exit 0, so read it back
+        // rather than trusting the exit status.
+        if (readPtraceScope() === 0)
+            return true;
+    }
+    core.warning(`Could not lower ${PTRACE_SCOPE_PATH} to 0 (it is still ${readPtraceScope()}). Attaching to the runner process will fail. Run the monitor around a command instead, or give the runner CAP_SYS_PTRACE.`);
+    return false;
+}
+function cmdlineOf(pid) {
+    try {
+        return external_fs_.readFileSync(`/proc/${pid}/cmdline`, 'utf8')
+            .split('\0')
+            .filter((part) => part.length > 0)
+            .join(' ');
+    }
+    catch (_a) {
+        return '<unavailable>';
+    }
+}
+function isAlive(pid) {
+    try {
+        process.kill(pid, 0);
+        return true;
+    }
+    catch (_a) {
+        return false;
+    }
+}
+/**
+ * Start `buildnote monitor` detached, so it outlives this step and keeps
+ * tracing the steps that follow. Arguments go through as real argv rather than
+ * through an args file: the file would be deleted before the JVM read it.
+ */
+function spawnMonitor(args, logFile) {
+    external_fs_.mkdirSync(external_path_.dirname(logFile), { recursive: true });
+    const out = external_fs_.openSync(logFile, 'a');
+    const env = Object.assign({}, process.env);
+    // The runner kills every process tagged with the step's tracking id when the
+    // step ends, and the monitor has to outlive it.
+    delete env.RUNNER_TRACKING_ID;
+    try {
+        const child = (0,external_child_process_.spawn)('buildnote', args, {
+            detached: true,
+            stdio: ['ignore', out, out],
+            env,
+        });
+        child.unref();
+        return child.pid;
+    }
+    finally {
+        external_fs_.closeSync(out);
+    }
+}
+/**
+ * Wait until the monitor has attached. The `Monitoring process <pid>` line is
+ * printed before the attach is attempted, so the log is no signal; a refused
+ * PTRACE_SEIZE is one syscall away and makes the monitor print why and exit 1.
+ * Still running after the window means it is tracing.
+ */
+function waitUntilAttached(pid, timeoutMs = READY_TIMEOUT_MS) {
+    return __awaiter(this, void 0, void 0, function* () {
+        const deadline = Date.now() + timeoutMs;
+        while (Date.now() < deadline) {
+            if (!isAlive(pid))
+                return false;
+            yield wait(READY_POLL_MS);
+        }
+        return isAlive(pid);
+    });
+}
+/**
+ * Stop the monitor and let it submit. SIGTERM goes to the monitor alone -
+ * signalling the process group would hit every traced descendant too - and the
+ * wait matters because the recorded commands are uploaded from a JVM shutdown
+ * hook. A SIGKILLed monitor submits nothing at all.
+ */
+function stopMonitor(pid, timeoutMs = STOP_TIMEOUT_MS) {
+    return __awaiter(this, void 0, void 0, function* () {
+        try {
+            process.kill(pid, 'SIGTERM');
+        }
+        catch (_a) {
+            return true;
+        }
+        const deadline = Date.now() + timeoutMs;
+        while (Date.now() < deadline) {
+            if (!isAlive(pid))
+                return true;
+            yield wait(STOP_POLL_MS);
+        }
+        try {
+            process.kill(pid, 'SIGKILL');
+        }
+        catch (_b) {
+            // already gone
+        }
+        return false;
+    });
+}
+function logTail(logFile) {
+    try {
+        const text = external_fs_.readFileSync(logFile, 'utf8').trimEnd();
+        return text.length > LOG_TAIL_CHARS
+            ? `...${text.slice(-LOG_TAIL_CHARS)}`
+            : text;
+    }
+    catch (_a) {
+        return '';
+    }
+}
+
+;// CONCATENATED MODULE: ./src/libs/utils.ts
+function quote(value) {
+    return JSON.stringify(value);
+}
+/**
+ * Split a line of arguments the way a shell would, so a `--` separator and the
+ * command after it reach the CLI as separate argv entries whether they were
+ * written on one line or on several. Quoted sections stay whole, which an
+ * arguments file joined back together with spaces would not manage.
+ */
+function splitArguments(line) {
+    const tokens = [];
+    let token = undefined;
+    let quote = undefined;
+    const append = (char) => {
+        token = (token === undefined ? '' : token) + char;
+    };
+    for (let i = 0; i < line.length; i++) {
+        const char = line[i];
+        if (quote) {
+            if (char === quote)
+                quote = undefined;
+            else if (char === '\\' && quote === '"' && i + 1 < line.length)
+                append(line[++i]);
+            else
+                append(char);
+            continue;
+        }
+        if (char === '"' || char === "'") {
+            quote = char;
+            append('');
+        }
+        else if (char === '\\' && i + 1 < line.length) {
+            append(line[++i]);
+        }
+        else if (/\s/.test(char)) {
+            if (token !== undefined)
+                tokens.push(token);
+            token = undefined;
+        }
+        else {
+            append(char);
+        }
+    }
+    if (token !== undefined)
+        tokens.push(token);
+    return tokens;
+}
+
 // EXTERNAL MODULE: ./node_modules/actions-parsers/dist/main.js
 var main = __nccwpck_require__(3295);
 ;// CONCATENATED MODULE: ./src/main.ts
@@ -11540,18 +11760,24 @@ var main = __nccwpck_require__(3295);
 
 
 
-const main_main = () => __awaiter(void 0, void 0, void 0, function* () {
-    runAction();
-});
+
+
+
+
+const supportedCommands = ["collect", "guardrails", "monitor", "report", "submit", "version"];
+// Commands that gate the build. Their exit code has to reach the step, or
+// `--fail-on` is inert through the action.
+const gatingCommands = ["guardrails"];
+const STATE_IS_POST = "isPost";
+const STATE_MONITOR_PID = "monitorPid";
+const STATE_MONITOR_LOG = "monitorLog";
+const ARGS_FILE = '.buildnote-cli-args';
 const runAction = () => __awaiter(void 0, void 0, void 0, function* () {
-    const supportedCommands = ["collect", "submit", "report", "version"];
     yield installCli((0,main.getInput)('version'));
-    const installOnly = (0,main.getBooleanInput)("installOnly");
-    if (installOnly) {
+    if ((0,main.getBooleanInput)("installOnly")) {
         core.info("Installed only");
-    }
-    if (installOnly)
         return;
+    }
     const command = (0,main.getInput)('command');
     const verbose = (0,main.getBooleanInput)('verbose', { required: false }) || false;
     const args = (0,main.getMultilineInput)('args');
@@ -11559,39 +11785,104 @@ const runAction = () => __awaiter(void 0, void 0, void 0, function* () {
         core.error(`Invalid command '${command}'. Supported commands are [${supportedCommands.join(", ")}]`);
         return;
     }
-    const fileName = '.buildnote-cli-args';
+    if (command === "monitor") {
+        // The monitor takes real argv rather than an arguments file, so the lines
+        // are tokenised here instead of being joined back together with spaces.
+        const argv = args.reduce((all, line) => all.concat(splitArguments(line)), []);
+        return wrapsACommand(argv) ? runMonitorAround(argv, verbose) : attachMonitor(argv, verbose);
+    }
+    return runCommand(command, args, verbose);
+});
+// `buildnote monitor -- <command>` traces a command of the user's own; without
+// a `--` the monitor attaches to the runner instead and traces the rest of the
+// job.
+const wrapsACommand = (args) => args.indexOf('--') >= 0;
+const runCommand = (command, args, verbose) => __awaiter(void 0, void 0, void 0, function* () {
+    const fullCommand = (verbose ? ["--verbose"] : []).concat([command, ...args]);
+    const fullCommandFileContent = fullCommand.join(" ").trim();
     try {
-        let options;
-        switch (command) {
-            case "submit":
-                options = [];
-                break;
-            case "collect":
-                options = [];
-                break;
-            case "report":
-                options = [];
-                break;
-            case "version":
-                options = [];
-                break;
-            default:
-                return;
-        }
-        const fullCommand = (verbose ? ["--verbose"] : []).concat([command, ...options, ...args]);
-        const fullCommandFileContent = fullCommand.join(" ").trim();
         core.info(`Running buildnote ${fullCommandFileContent}`);
-        external_fs_.writeFileSync(fileName, fullCommandFileContent);
-        const buildnoteOutput = yield run(`@${fileName}`);
+        external_fs_.writeFileSync(ARGS_FILE, fullCommandFileContent);
+        const buildnoteOutput = yield run(`@${ARGS_FILE}`);
         core.info(buildnoteOutput.stdout);
-        core.error(buildnoteOutput.stderr);
+        if (buildnoteOutput.stderr)
+            core.error(buildnoteOutput.stderr);
+        if (!buildnoteOutput.success && gatingCommands.indexOf(command) >= 0) {
+            core.setFailed(`buildnote ${command} exited with status ${buildnoteOutput.exitCode}`);
+        }
     }
     catch (err) {
         core.error(err);
     }
     finally {
-        external_fs_.unlinkSync(fileName);
+        if (external_fs_.existsSync(ARGS_FILE))
+            external_fs_.unlinkSync(ARGS_FILE);
     }
+});
+// The wrapped command is a descendant of the monitor, which is the mode that
+// needs no privileges at all: Yama already allows tracing your own children.
+const runMonitorAround = (args, verbose) => __awaiter(void 0, void 0, void 0, function* () {
+    const argv = (verbose ? ["--verbose"] : []).concat(["monitor", ...args]);
+    core.info(`Running buildnote ${argv.join(" ")}`);
+    const buildnoteOutput = yield runStreaming(...argv);
+    if (!buildnoteOutput.success) {
+        core.setFailed(`buildnote monitor exited with status ${buildnoteOutput.exitCode}`);
+    }
+});
+// Attaching runs the monitor detached so it outlives this step and records the
+// steps that follow; the post step stops it and it submits on the way out.
+const attachMonitor = (args, verbose) => __awaiter(void 0, void 0, void 0, function* () {
+    const target = process.ppid;
+    const logFile = external_path_.join(process.env.RUNNER_TEMP || external_os_.tmpdir(), 'buildnote', 'monitor.log');
+    const argv = (verbose ? ["--verbose"] : []).concat(["monitor", ...args]);
+    if (!args.some((arg) => arg.startsWith('--pid')))
+        argv.push('--pid', String(target));
+    core.info(`Attaching buildnote monitor to process ${target} and everything it starts`);
+    core.debug(`Process ${target} is ${cmdlineOf(target)}`);
+    relaxPtraceScope();
+    core.saveState(STATE_MONITOR_LOG, logFile);
+    const pid = spawnMonitor(argv, logFile);
+    if (!pid) {
+        core.error('buildnote monitor could not be started; this job is not being traced.');
+        return;
+    }
+    core.saveState(STATE_MONITOR_PID, String(pid));
+    if (!(yield waitUntilAttached(pid))) {
+        core.saveState(STATE_MONITOR_PID, '');
+        const tail = logTail(logFile);
+        // Monitoring is not a gate, so a runner that will not allow the attach
+        // gets a loud annotation rather than a failed job.
+        core.error(`buildnote monitor exited before it attached to process ${target}; this job is not being traced.${tail ? `\n${tail}` : ''}`);
+        return;
+    }
+    core.info(`buildnote monitor is running as pid ${pid}`);
+});
+const runPost = () => __awaiter(void 0, void 0, void 0, function* () {
+    const pid = parseInt(core.getState(STATE_MONITOR_PID), 10);
+    if (!pid)
+        return;
+    const logFile = core.getState(STATE_MONITOR_LOG);
+    if (!isAlive(pid)) {
+        core.warning(`buildnote monitor (pid ${pid}) is no longer running; part of this job was not traced.`);
+    }
+    else {
+        core.info(`Stopping buildnote monitor (pid ${pid}) and submitting the recorded commands`);
+        if (!(yield stopMonitor(pid))) {
+            core.warning(`buildnote monitor (pid ${pid}) did not exit after SIGTERM and had to be killed, so nothing was submitted.`);
+        }
+    }
+    const tail = logTail(logFile);
+    if (tail)
+        core.info(tail);
+});
+const main_main = () => __awaiter(void 0, void 0, void 0, function* () {
+    const isPost = !!core.getState(STATE_IS_POST);
+    if (isPost)
+        return runPost();
+    // Saved before any work, so a main step that fails early does not have the
+    // post step re-run it.
+    core.saveState(STATE_IS_POST, 'true');
+    return runAction();
 });
 (() => __awaiter(void 0, void 0, void 0, function* () {
     try {
