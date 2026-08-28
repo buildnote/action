@@ -11553,6 +11553,7 @@ const PTRACE_SCOPE_PATH = '/proc/sys/kernel/yama/ptrace_scope';
 const READY_POLL_MS = 100;
 const READY_TIMEOUT_MS = 5000;
 const STOP_POLL_MS = 200;
+const INTERRUPT_TIMEOUT_MS = 10000;
 const STOP_TIMEOUT_MS = 60000;
 // GitHub truncates annotations around 4KB; keep the log excerpt below that.
 const LOG_TAIL_CHARS = 3500;
@@ -11675,31 +11676,47 @@ function waitUntilAttached(pid, timeoutMs = READY_TIMEOUT_MS) {
     });
 }
 /**
- * Stop the monitor and let it submit. SIGTERM goes to the monitor alone -
- * signalling the process group would hit every traced descendant too - and the
- * wait matters because the recorded commands are uploaded from a JVM shutdown
- * hook. A SIGKILLed monitor submits nothing at all.
+ * Signal the monitor. Returns false once it is gone, which is the only reason
+ * kill throws here.
  */
-function stopMonitor(pid, timeoutMs = STOP_TIMEOUT_MS) {
+function signal(pid, sig) {
+    try {
+        process.kill(pid, sig);
+        return true;
+    }
+    catch (_a) {
+        return false;
+    }
+}
+function waitForExit(pid, timeoutMs) {
     return __awaiter(this, void 0, void 0, function* () {
-        try {
-            process.kill(pid, 'SIGTERM');
-        }
-        catch (_a) {
-            return true;
-        }
         const deadline = Date.now() + timeoutMs;
         while (Date.now() < deadline) {
             if (!isAlive(pid))
                 return true;
             yield wait(STOP_POLL_MS);
         }
-        try {
-            process.kill(pid, 'SIGKILL');
-        }
-        catch (_b) {
-            // already gone
-        }
+        return !isAlive(pid);
+    });
+}
+/**
+ * Stop the monitor and let it submit: SIGINT first, then SIGTERM once the
+ * interrupt window passes, then SIGKILL. Every signal goes to the monitor
+ * alone - signalling the process group would hit every traced descendant too -
+ * and the waits matter because the recorded commands are uploaded from a JVM
+ * shutdown hook. A SIGKILLed monitor submits nothing at all.
+ */
+function stopMonitor(pid, timeoutMs = STOP_TIMEOUT_MS, interruptTimeoutMs = INTERRUPT_TIMEOUT_MS) {
+    return __awaiter(this, void 0, void 0, function* () {
+        if (!signal(pid, 'SIGINT'))
+            return true;
+        if (yield waitForExit(pid, interruptTimeoutMs))
+            return true;
+        if (!signal(pid, 'SIGTERM'))
+            return true;
+        if (yield waitForExit(pid, timeoutMs))
+            return true;
+        signal(pid, 'SIGKILL');
         return false;
     });
 }
@@ -11864,10 +11881,10 @@ const attachMonitor = (args, verbose) => __awaiter(void 0, void 0, void 0, funct
         const tail = logTail(logFile);
         // Monitoring is not a gate, so a runner that will not allow the attach
         // gets a loud annotation rather than a failed job.
-        core.error(`buildnote monitor exited before it attached to process ${target}; this job is not being traced.${tail ? `\n${tail}` : ''}`);
+        core.error(`Buildnote monitor exited before it attached to process ${target}; this job is not being traced.${tail ? `\n${tail}` : ''}`);
         return;
     }
-    core.info(`buildnote monitor is running as pid ${pid}`);
+    core.info(`Buildnote monitor is running as pid ${pid}`);
 });
 const runPost = () => __awaiter(void 0, void 0, void 0, function* () {
     const pid = parseInt(core.getState(STATE_MONITOR_PID), 10);
@@ -11875,12 +11892,12 @@ const runPost = () => __awaiter(void 0, void 0, void 0, function* () {
         return;
     const logFile = core.getState(STATE_MONITOR_LOG);
     if (!isAlive(pid)) {
-        core.warning(`buildnote monitor (pid ${pid}) is no longer running; part of this job was not traced.`);
+        core.warning(`Buildnote monitor (pid ${pid}) is no longer running; part of this job was not traced.`);
     }
     else {
         core.info(`Stopping buildnote monitor (pid ${pid}) and submitting the recorded commands`);
         if (!(yield stopMonitor(pid))) {
-            core.warning(`buildnote monitor (pid ${pid}) did not exit after SIGTERM and had to be killed, so nothing was submitted.`);
+            core.warning(`Buildnote monitor (pid ${pid}) did not exit after SIGINT and SIGTERM and had to be killed, so nothing was submitted.`);
         }
     }
     const tail = logTail(logFile);
