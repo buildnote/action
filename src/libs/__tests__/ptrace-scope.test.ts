@@ -1,10 +1,9 @@
+import * as childProcess from 'child_process';
 import * as fs from 'fs';
 import * as os from 'os';
-import * as childProcess from 'child_process';
-import { mocked } from 'ts-jest/utils';
 import {
-  cmdlineOf,
   PTRACE_SCOPE_PATH,
+  cmdlineOf,
   readPtraceScope,
   relaxPtraceScope,
 } from '../monitor';
@@ -25,9 +24,9 @@ jest.mock('child_process', () => ({
   execFileSync: jest.fn(),
 }));
 
-const mockedFs = mocked(fs);
-const mockedOs = mocked(os);
-const mockedChildProcess = mocked(childProcess);
+const mockedFs = jest.mocked(fs);
+const mockedOs = jest.mocked(os);
+const mockedChildProcess = jest.mocked(childProcess);
 
 const scopeIs = (...values: string[]) =>
   values.reduce(

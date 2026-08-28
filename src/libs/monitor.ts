@@ -1,8 +1,8 @@
-import * as os from 'os';
+import { execFileSync, spawn } from 'child_process';
 import * as fs from 'fs';
+import * as os from 'os';
 import * as path from 'path';
 import * as core from '@actions/core';
-import { execFileSync, spawn } from 'child_process';
 
 export const PTRACE_SCOPE_PATH = '/proc/sys/kernel/yama/ptrace_scope';
 

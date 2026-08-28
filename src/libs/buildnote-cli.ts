@@ -1,10 +1,10 @@
+import * as fs from "fs";
 import * as os from 'os';
 import * as path from 'path';
 import * as core from '@actions/core';
 import * as io from '@actions/io';
-import * as exec from './exec';
 import * as tc from "@actions/tool-cache";
-import * as fs from "fs";
+import * as exec from './exec';
 
 export async function run(...args: string[]): Promise<exec.ExecResult> {
   return exec.exec(`buildnote`, args, true);

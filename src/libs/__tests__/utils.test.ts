@@ -2,7 +2,7 @@ import {quote, splitArguments} from '../utils';
 
 describe('utils.ts', () => {
   it('should quote string', () => {
-    expect(quote('foo"bar"')).toBe('\"foo\\\"bar\\\"\"');
+    expect(quote('foo"bar"')).toBe('"foo\\"bar\\""');
   })
 
   describe('splitArguments', () => {

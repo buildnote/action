@@ -1,11 +1,11 @@
-import * as core from '@actions/core';
-import * as buildnoteCli from './libs/buildnote-cli';
-import * as monitor from './libs/monitor';
-import {splitArguments} from './libs/utils';
-import {getBooleanInput, getInput, getMultilineInput} from "actions-parsers";
 import * as fs from "fs";
 import * as os from "os";
 import * as path from "path";
+import * as core from '@actions/core';
+import {getBooleanInput, getInput, getMultilineInput} from "actions-parsers";
+import * as buildnoteCli from './libs/buildnote-cli';
+import * as monitor from './libs/monitor';
+import {splitArguments} from './libs/utils';
 
 const supportedCommands = ["collect", "guardrails", "monitor", "report", "submit", "version"]
 
