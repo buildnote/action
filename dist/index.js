@@ -39767,8 +39767,6 @@ const runMonitorAround = (args, verbose) => __awaiter(void 0, void 0, void 0, fu
 // steps that follow; the post step stops it and it submits on the way out.
 const attachMonitor = (args, verbose) => __awaiter(void 0, void 0, void 0, function* () {
     const logFile = external_path_.join(process.env.RUNNER_TEMP || external_os_.tmpdir(), 'buildnote', 'monitor.log');
-    // No `--pid` is passed: the monitor resolves the runner process to attach to
-    // itself. An explicit `--pid` in the step's args still goes through verbatim.
     const argv = (verbose ? ["--verbose"] : []).concat(["monitor", ...args]);
     core.info('Attaching buildnote monitor to the runner process and everything it starts');
     relaxPtraceScope();
