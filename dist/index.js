@@ -39477,18 +39477,10 @@ function writeScopeDirectly() {
     external_fs_.writeFileSync(PTRACE_SCOPE_PATH, '0');
 }
 function writeScopeWithSudo() {
-    // -n so a runner without passwordless sudo fails immediately instead of
-    // blocking on a password prompt nobody can answer.
     (0,external_child_process_.execFileSync)('sudo', ['-n', 'sh', '-c', `echo 0 > ${PTRACE_SCOPE_PATH}`], {
         stdio: 'ignore',
     });
 }
-/**
- * Lower Yama's ptrace scope so the monitor can attach upwards to the runner
- * process. Yama is 1 on Ubuntu and on GitHub-hosted runners, which only allows
- * tracing your own descendants. Never fatal: the caller reports the attach
- * failure that follows, with the monitor's own diagnosis of why.
- */
 function relaxPtraceScope() {
     if (external_os_.platform() !== 'linux') {
         core.warning(`Attaching to the runner process is only unprivileged on Linux. On ${external_os_.platform()} the monitor needs elevated privileges to attach to a process it did not start.`);
@@ -39511,8 +39503,6 @@ function relaxPtraceScope() {
         catch (err) {
             core.debug(`${write.name} failed: ${err}`);
         }
-        // A write that is refused by a sandbox can still exit 0, so read it back
-        // rather than trusting the exit status.
         if (readPtraceScope() === 0)
             return true;
     }
@@ -39521,8 +39511,7 @@ function relaxPtraceScope() {
 }
 function cmdlineOf(pid) {
     try {
-        return fs
-            .readFileSync(`/proc/${pid}/cmdline`, 'utf8')
+        return external_fs_.readFileSync(`/proc/${pid}/cmdline`, 'utf8')
             .split('\0')
             .filter((part) => part.length > 0)
             .join(' ');
@@ -39540,17 +39529,10 @@ function isAlive(pid) {
         return false;
     }
 }
-/**
- * Start `buildnote monitor` detached, so it outlives this step and keeps
- * tracing the steps that follow. Arguments go through as real argv rather than
- * through an args file: the file would be deleted before the JVM read it.
- */
 function spawnMonitor(args, logFile) {
     external_fs_.mkdirSync(external_path_.dirname(logFile), { recursive: true });
     const out = external_fs_.openSync(logFile, 'a');
     const env = Object.assign({}, process.env);
-    // The runner kills every process tagged with the step's tracking id when the
-    // step ends, and the monitor has to outlive it.
     delete env.RUNNER_TRACKING_ID;
     try {
         const child = (0,external_child_process_.spawn)('buildnote', args, {
@@ -39565,12 +39547,6 @@ function spawnMonitor(args, logFile) {
         external_fs_.closeSync(out);
     }
 }
-/**
- * Wait until the monitor has attached. The `Monitoring process <pid>` line is
- * printed before the attach is attempted, so the log is no signal; a refused
- * PTRACE_SEIZE is one syscall away and makes the monitor print why and exit 1.
- * Still running after the window means it is tracing.
- */
 function waitUntilAttached(pid_1) {
     return __awaiter(this, arguments, void 0, function* (pid, timeoutMs = READY_TIMEOUT_MS) {
         const deadline = Date.now() + timeoutMs;
@@ -39582,10 +39558,6 @@ function waitUntilAttached(pid_1) {
         return isAlive(pid);
     });
 }
-/**
- * Signal the monitor. Returns false once it is gone, which is the only reason
- * kill throws here.
- */
 function signal(pid, sig) {
     try {
         process.kill(pid, sig);
@@ -39606,13 +39578,6 @@ function waitForExit(pid, timeoutMs) {
         return !isAlive(pid);
     });
 }
-/**
- * Stop the monitor and let it submit: SIGINT first, then SIGTERM once the
- * interrupt window passes, then SIGKILL. Every signal goes to the monitor
- * alone - signalling the process group would hit every traced descendant too -
- * and the waits matter because the recorded commands are uploaded from a JVM
- * shutdown hook. A SIGKILLed monitor submits nothing at all.
- */
 function stopMonitor(pid_1) {
     return __awaiter(this, arguments, void 0, function* (pid, timeoutMs = STOP_TIMEOUT_MS, interruptTimeoutMs = INTERRUPT_TIMEOUT_MS) {
         if (!signal(pid, 'SIGINT'))
@@ -39699,8 +39664,6 @@ function splitArguments(line) {
 
 
 const supportedCommands = ["collect", "guardrails", "monitor", "report", "submit", "version"];
-// Commands that gate the build. Their exit code has to reach the step, or
-// `--fail-on` is inert through the action.
 const gatingCommands = ["guardrails"];
 const STATE_IS_POST = "isPost";
 const STATE_MONITOR_PID = "monitorPid";
@@ -39720,16 +39683,11 @@ const runAction = () => __awaiter(void 0, void 0, void 0, function* () {
         return;
     }
     if (command === "monitor") {
-        // The monitor takes real argv rather than an arguments file, so the lines
-        // are tokenised here instead of being joined back together with spaces.
         const argv = args.reduce((all, line) => all.concat(splitArguments(line)), []);
         return wrapsACommand(argv) ? runMonitorAround(argv, verbose) : attachMonitor(argv, verbose);
     }
     return runCommand(command, args, verbose);
 });
-// `buildnote monitor -- <command>` traces a command of the user's own; without
-// a `--` the monitor attaches to the runner instead and traces the rest of the
-// job.
 const wrapsACommand = (args) => args.indexOf('--') >= 0;
 const runCommand = (command, args, verbose) => __awaiter(void 0, void 0, void 0, function* () {
     const fullCommand = (verbose ? ["--verbose"] : []).concat([command, ...args]);
@@ -39753,8 +39711,6 @@ const runCommand = (command, args, verbose) => __awaiter(void 0, void 0, void 0,
             external_fs_.unlinkSync(ARGS_FILE);
     }
 });
-// The wrapped command is a descendant of the monitor, which is the mode that
-// needs no privileges at all: Yama already allows tracing your own children.
 const runMonitorAround = (args, verbose) => __awaiter(void 0, void 0, void 0, function* () {
     const argv = (verbose ? ["--verbose"] : []).concat(["monitor", ...args]);
     core.info(`Running buildnote ${argv.join(" ")}`);
@@ -39763,12 +39719,11 @@ const runMonitorAround = (args, verbose) => __awaiter(void 0, void 0, void 0, fu
         core.setFailed(`buildnote monitor exited with status ${buildnoteOutput.exitCode}`);
     }
 });
-// Attaching runs the monitor detached so it outlives this step and records the
-// steps that follow; the post step stops it and it submits on the way out.
 const attachMonitor = (args, verbose) => __awaiter(void 0, void 0, void 0, function* () {
     const logFile = external_path_.join(process.env.RUNNER_TEMP || external_os_.tmpdir(), 'buildnote', 'monitor.log');
     const argv = (verbose ? ["--verbose"] : []).concat(["monitor", ...args]);
     core.info('Attaching buildnote monitor to the runner process and everything it starts');
+    core.debug(`This action runs as ${process.pid}, launched by ${process.ppid} (${cmdlineOf(process.ppid)})`);
     relaxPtraceScope();
     core.saveState(STATE_MONITOR_LOG, logFile);
     const pid = spawnMonitor(argv, logFile);
@@ -39780,8 +39735,6 @@ const attachMonitor = (args, verbose) => __awaiter(void 0, void 0, void 0, funct
     if (!(yield waitUntilAttached(pid))) {
         core.saveState(STATE_MONITOR_PID, '');
         const tail = logTail(logFile);
-        // Monitoring is not a gate, so a runner that will not allow the attach
-        // gets a loud annotation rather than a failed job.
         core.error(`Buildnote monitor exited before it attached to the runner process; this job is not being traced.${tail ? `\n${tail}` : ''}`);
         return;
     }
@@ -39809,8 +39762,6 @@ const main_main = () => __awaiter(void 0, void 0, void 0, function* () {
     const isPost = !!core.getState(STATE_IS_POST);
     if (isPost)
         return runPost();
-    // Saved before any work, so a main step that fails early does not have the
-    // post step re-run it.
     core.saveState(STATE_IS_POST, 'true');
     return runAction();
 });
