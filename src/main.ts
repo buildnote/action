@@ -9,8 +9,6 @@ import {splitArguments} from './libs/utils';
 
 const supportedCommands = ["collect", "guardrails", "monitor", "report", "submit", "version"]
 
-// Commands that gate the build. Their exit code has to reach the step, or
-// `--fail-on` is inert through the action.
 const gatingCommands = ["guardrails"]
 
 const STATE_IS_POST = "isPost";
@@ -37,8 +35,6 @@ const runAction = async (): Promise<void> => {
   }
 
   if (command === "monitor") {
-    // The monitor takes real argv rather than an arguments file, so the lines
-    // are tokenised here instead of being joined back together with spaces.
     const argv = args.reduce((all, line) => all.concat(splitArguments(line)), [] as string[]);
     return wrapsACommand(argv) ? runMonitorAround(argv, verbose) : attachMonitor(argv, verbose)
   }
@@ -46,9 +42,6 @@ const runAction = async (): Promise<void> => {
   return runCommand(command, args, verbose)
 };
 
-// `buildnote monitor -- <command>` traces a command of the user's own; without
-// a `--` the monitor attaches to the runner instead and traces the rest of the
-// job.
 const wrapsACommand = (args: string[]): boolean => args.indexOf('--') >= 0;
 
 const runCommand = async (command: string, args: string[], verbose: boolean): Promise<void> => {
@@ -74,8 +67,6 @@ const runCommand = async (command: string, args: string[], verbose: boolean): Pr
   }
 };
 
-// The wrapped command is a descendant of the monitor, which is the mode that
-// needs no privileges at all: Yama already allows tracing your own children.
 const runMonitorAround = async (args: string[], verbose: boolean): Promise<void> => {
   const argv = (verbose ? ["--verbose"] : []).concat(["monitor", ...args]);
   core.info(`Running buildnote ${argv.join(" ")}`);
@@ -86,14 +77,14 @@ const runMonitorAround = async (args: string[], verbose: boolean): Promise<void>
   }
 };
 
-// Attaching runs the monitor detached so it outlives this step and records the
-// steps that follow; the post step stops it and it submits on the way out.
+
 const attachMonitor = async (args: string[], verbose: boolean): Promise<void> => {
   const logFile = path.join(process.env.RUNNER_TEMP || os.tmpdir(), 'buildnote', 'monitor.log');
 
   const argv = (verbose ? ["--verbose"] : []).concat(["monitor", ...args]);
 
   core.info('Attaching buildnote monitor to the runner process and everything it starts');
+  core.debug(`This action runs as ${process.pid}, launched by ${process.ppid} (${monitor.cmdlineOf(process.ppid)})`);
 
   monitor.relaxPtraceScope();
 
@@ -108,8 +99,6 @@ const attachMonitor = async (args: string[], verbose: boolean): Promise<void> =>
   if (!(await monitor.waitUntilAttached(pid))) {
     core.saveState(STATE_MONITOR_PID, '');
     const tail = monitor.logTail(logFile);
-    // Monitoring is not a gate, so a runner that will not allow the attach
-    // gets a loud annotation rather than a failed job.
     core.error(`Buildnote monitor exited before it attached to the runner process; this job is not being traced.${tail ? `\n${tail}` : ''}`);
     return;
   }
@@ -139,9 +128,6 @@ const runPost = async (): Promise<void> => {
 const main = async () => {
   const isPost = !!core.getState(STATE_IS_POST);
   if (isPost) return runPost();
-
-  // Saved before any work, so a main step that fails early does not have the
-  // post step re-run it.
   core.saveState(STATE_IS_POST, 'true');
   return runAction();
 };

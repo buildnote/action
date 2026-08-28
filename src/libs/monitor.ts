@@ -11,6 +11,7 @@ const READY_TIMEOUT_MS = 5_000;
 const STOP_POLL_MS = 200;
 const INTERRUPT_TIMEOUT_MS = 10_000;
 const STOP_TIMEOUT_MS = 60_000;
+
 // GitHub truncates annotations around 4KB; keep the log excerpt below that.
 const LOG_TAIL_CHARS = 3_500;
 
@@ -31,19 +32,12 @@ function writeScopeDirectly(): void {
 }
 
 function writeScopeWithSudo(): void {
-  // -n so a runner without passwordless sudo fails immediately instead of
-  // blocking on a password prompt nobody can answer.
   execFileSync('sudo', ['-n', 'sh', '-c', `echo 0 > ${PTRACE_SCOPE_PATH}`], {
     stdio: 'ignore',
   });
 }
 
-/**
- * Lower Yama's ptrace scope so the monitor can attach upwards to the runner
- * process. Yama is 1 on Ubuntu and on GitHub-hosted runners, which only allows
- * tracing your own descendants. Never fatal: the caller reports the attach
- * failure that follows, with the monitor's own diagnosis of why.
- */
+
 export function relaxPtraceScope(): boolean {
   if (os.platform() !== 'linux') {
     core.warning(
@@ -72,8 +66,6 @@ export function relaxPtraceScope(): boolean {
     } catch (err) {
       core.debug(`${write.name} failed: ${err}`);
     }
-    // A write that is refused by a sandbox can still exit 0, so read it back
-    // rather than trusting the exit status.
     if (readPtraceScope() === 0) return true;
   }
 
@@ -104,17 +96,11 @@ export function isAlive(pid: number): boolean {
   }
 }
 
-/**
- * Start `buildnote monitor` detached, so it outlives this step and keeps
- * tracing the steps that follow. Arguments go through as real argv rather than
- * through an args file: the file would be deleted before the JVM read it.
- */
+
 export function spawnMonitor(args: string[], logFile: string): number {
   fs.mkdirSync(path.dirname(logFile), { recursive: true });
   const out = fs.openSync(logFile, 'a');
   const env = { ...process.env };
-  // The runner kills every process tagged with the step's tracking id when the
-  // step ends, and the monitor has to outlive it.
   delete env.RUNNER_TRACKING_ID;
 
   try {
@@ -130,12 +116,6 @@ export function spawnMonitor(args: string[], logFile: string): number {
   }
 }
 
-/**
- * Wait until the monitor has attached. The `Monitoring process <pid>` line is
- * printed before the attach is attempted, so the log is no signal; a refused
- * PTRACE_SEIZE is one syscall away and makes the monitor print why and exit 1.
- * Still running after the window means it is tracing.
- */
 export async function waitUntilAttached(
   pid: number,
   timeoutMs: number = READY_TIMEOUT_MS,
@@ -148,10 +128,6 @@ export async function waitUntilAttached(
   return isAlive(pid);
 }
 
-/**
- * Signal the monitor. Returns false once it is gone, which is the only reason
- * kill throws here.
- */
 function signal(pid: number, sig: NodeJS.Signals): boolean {
   try {
     process.kill(pid, sig);
@@ -170,13 +146,6 @@ async function waitForExit(pid: number, timeoutMs: number): Promise<boolean> {
   return !isAlive(pid);
 }
 
-/**
- * Stop the monitor and let it submit: SIGINT first, then SIGTERM once the
- * interrupt window passes, then SIGKILL. Every signal goes to the monitor
- * alone - signalling the process group would hit every traced descendant too -
- * and the waits matter because the recorded commands are uploaded from a JVM
- * shutdown hook. A SIGKILLed monitor submits nothing at all.
- */
 export async function stopMonitor(
   pid: number,
   timeoutMs: number = STOP_TIMEOUT_MS,
