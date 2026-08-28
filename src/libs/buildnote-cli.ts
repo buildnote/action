@@ -84,7 +84,7 @@ export async function installCli(requiredVersion: string): Promise<void> {
   let currentVersion = undefined;
 
   if (isDev) {
-    core.info(`Buildnote ${DEV_VERSION} is a moving version. Reinstalling it`);
+    core.info(`Buildnote ${DEV_VERSION} is a moving version. Downloading it`);
   } else if (isInstalled) {
     currentVersion = await getVersion()
     if (currentVersion == resolvedVersion) {
