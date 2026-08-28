@@ -39339,8 +39339,6 @@ function run(...args) {
         return exec_exec(`buildnote`, args, true);
     });
 }
-// Streams the output as it is produced, for commands that wrap a build of the
-// user's own and would otherwise print nothing until it finished.
 function runStreaming(...args) {
     return __awaiter(this, void 0, void 0, function* () {
         return exec_exec(`buildnote`, args, false);
@@ -39384,6 +39382,7 @@ function getLatestVersion() {
         }
     });
 }
+const DEV_VERSION = 'dev';
 function installCli(requiredVersion) {
     return __awaiter(this, void 0, void 0, function* () {
         // Resolve "latest" to actual version number
@@ -39403,9 +39402,13 @@ function installCli(requiredVersion) {
         if (!platform) {
             throw new Error('Unsupported operating system - Buildnote CLI is only released for Darwin (x64), Linux (x64) and Windows (x64)');
         }
+        const isDev = resolvedVersion === DEV_VERSION;
         const isInstalled = yield io.which('buildnote');
         let currentVersion = undefined;
-        if (isInstalled) {
+        if (isDev) {
+            core.info(`Buildnote ${DEV_VERSION} is a moving version. Reinstalling it`);
+        }
+        else if (isInstalled) {
             currentVersion = yield getVersion();
             if (currentVersion == resolvedVersion) {
                 core.info(`Buildnote version ${currentVersion} is already installed on this machine. Skipping download`);
@@ -39427,14 +39430,8 @@ function installCli(requiredVersion) {
             const downloaded = yield tool_cache.downloadTool(downloads[platform]);
             core.debug(`Successfully downloaded ${downloads[platform]} to ${downloaded}`);
             yield io.cp(downloaded, external_path_.join(destination, 'bin', "buildnote"));
-            external_fs_.chmod(external_path_.join(destination, 'bin', "buildnote"), 0o744, (error) => {
-                if (error) {
-                    throw error;
-                }
-                else {
-                    core.debug('Permissions updated successfully');
-                }
-            });
+            external_fs_.chmodSync(external_path_.join(destination, 'bin', "buildnote"), 0o744);
+            core.debug('Permissions updated successfully');
         }
         const cachedPath = yield tool_cache.cacheDir(external_path_.join(destination, 'bin'), 'buildnote', resolvedVersion);
         core.addPath(cachedPath);
