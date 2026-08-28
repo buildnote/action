@@ -91,8 +91,6 @@ const runMonitorAround = async (args: string[], verbose: boolean): Promise<void>
 const attachMonitor = async (args: string[], verbose: boolean): Promise<void> => {
   const logFile = path.join(process.env.RUNNER_TEMP || os.tmpdir(), 'buildnote', 'monitor.log');
 
-  // No `--pid` is passed: the monitor resolves the runner process to attach to
-  // itself. An explicit `--pid` in the step's args still goes through verbatim.
   const argv = (verbose ? ["--verbose"] : []).concat(["monitor", ...args]);
 
   core.info('Attaching buildnote monitor to the runner process and everything it starts');
