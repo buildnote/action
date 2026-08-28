@@ -39521,7 +39521,8 @@ function relaxPtraceScope() {
 }
 function cmdlineOf(pid) {
     try {
-        return external_fs_.readFileSync(`/proc/${pid}/cmdline`, 'utf8')
+        return fs
+            .readFileSync(`/proc/${pid}/cmdline`, 'utf8')
             .split('\0')
             .filter((part) => part.length > 0)
             .join(' ');
@@ -39765,13 +39766,11 @@ const runMonitorAround = (args, verbose) => __awaiter(void 0, void 0, void 0, fu
 // Attaching runs the monitor detached so it outlives this step and records the
 // steps that follow; the post step stops it and it submits on the way out.
 const attachMonitor = (args, verbose) => __awaiter(void 0, void 0, void 0, function* () {
-    const target = process.ppid;
     const logFile = external_path_.join(process.env.RUNNER_TEMP || external_os_.tmpdir(), 'buildnote', 'monitor.log');
+    // No `--pid` is passed: the monitor resolves the runner process to attach to
+    // itself. An explicit `--pid` in the step's args still goes through verbatim.
     const argv = (verbose ? ["--verbose"] : []).concat(["monitor", ...args]);
-    if (!args.some((arg) => arg.startsWith('--pid')))
-        argv.push('--pid', String(target));
-    core.info(`Attaching buildnote monitor to process ${target} and everything it starts`);
-    core.debug(`Process ${target} is ${cmdlineOf(target)}`);
+    core.info('Attaching buildnote monitor to the runner process and everything it starts');
     relaxPtraceScope();
     core.saveState(STATE_MONITOR_LOG, logFile);
     const pid = spawnMonitor(argv, logFile);
@@ -39785,7 +39784,7 @@ const attachMonitor = (args, verbose) => __awaiter(void 0, void 0, void 0, funct
         const tail = logTail(logFile);
         // Monitoring is not a gate, so a runner that will not allow the attach
         // gets a loud annotation rather than a failed job.
-        core.error(`Buildnote monitor exited before it attached to process ${target}; this job is not being traced.${tail ? `\n${tail}` : ''}`);
+        core.error(`Buildnote monitor exited before it attached to the runner process; this job is not being traced.${tail ? `\n${tail}` : ''}`);
         return;
     }
     core.info(`Buildnote monitor is running as pid ${pid}`);
